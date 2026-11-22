@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرکز مدیریت محتوا و رسانه | Media & Asset Management Dashboard</title>
+
+    <!-- Google Fonts: Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e32',
+                            925: '#0c1220',
+                            950: '#080c16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.35);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.55);
+        }
+
+        /* Drag & Drop Active State */
+        .dropzone-active {
+            border-color: #06b6d4 !important;
+            background-color: rgba(6, 182, 212, 0.12) !important;
+            transform: scale(1.01);
+        }
+
+        /* Smooth Fade In */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 selection:bg-cyan-500 selection:text-white">
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ===================================================================== -->
+    <!-- LIGHTBOX PREVIEW & METADATA EDITOR MODAL                              -->
+    <!-- ===================================================================== -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-5xl w-full max-h-[92vh] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-fade-in">
+            
+            <!-- Media Viewer Stage (Left/Top) -->
+            <div class="lg:w-3/5 bg-slate-950 flex flex-col items-center justify-center relative min-h-[260px] sm:min-h-[380px] p-4 select-none">
+                <button onclick="closeLightbox()" class="lg:hidden absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-slate-800/80 text-white flex items-center justify-center hover:bg-rose-500 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div id="lightboxMediaContainer" class="w-full h-full flex items-center justify-center overflow-hidden rounded-2xl">
+                    <!-- Dynamic Image or Video Player -->
+                </div>
+            </div>
+
+            <!-- Metadata & Controls Panel (Right/Bottom) -->
+            <div class="lg:w-2/5 flex flex-col justify-between p-5 sm:p-6 overflow-y-auto border-t lg:border-t-0 lg:border-r border-slate-200 dark:border-slate-800">
+                <div class="space-y-4">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span id="lbTypeBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400">
+                                <i class="fa-solid fa-image"></i> تصویر
+                            </span>
+                            <h3 id="lbHeaderTitle" class="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white mt-1.5">جزئیات و ویرایش رسانه</h3>
+                        </div>
+                        <button onclick="closeLightbox()" class="hidden lg:flex w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-rose-500 items-center justify-center transition">
+                            <i class="fa-solid fa-xmark text-base"></i>
+                        </button>
+                    </div>
+
+                    <!-- Technical Metadata Grid -->
+                    <div class="grid grid-cols-2 gap-2.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">فرمت فایل</span>
+                            <span id="lbFormat" class="font-mono font-bold text-slate-800 dark:text-slate-200">PNG</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">حجم دقیق</span>
+                            <span id="lbSize" class="font-bold text-slate-800 dark:text-slate-200">1.45 MB</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">ابعاد (رزولوشن)</span>
+                            <span id="lbDimensions" class="font-mono font-bold text-slate-800 dark:text-slate-200">1920 × 1080</span>
+                        </div>
+                        <div>
+                            <span id="lbExtraLabel" class="text-slate-400 block text-[11px]">تاریخ آپلود</span>
+                            <span id="lbDate" class="font-bold text-slate-800 dark:text-slate-200">۱۴۰۵/۰۹/۰۱</span>
+                        </div>
+                    </div>
+
+                    <!-- Editable Form Fields -->
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">عنوان رسانه</label>
+                            <input id="lbEditTitle" type="text" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">دسته‌بندی</label>
+                                <select id="lbEditCategory" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="پروژه‌های IT">پروژه‌های IT</option>
+                                    <option value="مستندات آموزشی">مستندات آموزشی</option>
+                                    <option value="بازاریابی و محتوا">بازاریابی و محتوا</option>
+                                    <option value="گزارش تصویری">گزارش تصویری</option>
+                                    <option value="عمومی">عمومی</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">وضعیت انتشار</label>
+                                <select id="lbEditStatus" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="تأییدشده">تأییدشده</option>
+                                    <option value="در انتظار بررسی">در انتظار بررسی</option>
+                                    <option value="آرشیو">آرشیو</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">برچسب‌ها (با ویرگول جدا کنید)</label>
+                            <input id="lbEditTags" type="text" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">توضیحات</label>
+                            <textarea id="lbEditDesc" rows="2" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lightbox Action Footer -->
+                <div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <button onclick="downloadCurrentMedia()" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-download text-cyan-500"></i> دانلود
+                        </button>
+                        <button onclick="deleteCurrentMedia()" class="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-trash-can"></i> حذف
+                        </button>
+                    </div>
+                    <button onclick="saveLightboxChanges()" class="px-5 py-2 rounded-xl bg-gradient-to-l from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> ذخیره تغییرات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MAIN LAYOUT WRAPPER                                                   -->
+    <!-- ===================================================================== -->
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed lg:sticky top-0 right-0 z-40 h-screen w-72 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 translate-x-full lg:translate-x-0 shadow-xl lg:shadow-none">
+            <!-- Brand Header -->
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25">
+                        <i class="fa-solid fa-photo-film text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-sm leading-snug text-slate-900 dark:text-white">مرکز مدیریت محتوا و رسانه</h1>
+                        <span class="text-[11px] font-medium text-cyan-600 dark:text-cyan-400">Media & Asset Hub</span>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Quick Upload CTA in Sidebar -->
+            <div class="px-4 pt-4">
+                <button onclick="switchTab('upload')" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-l from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                    <span>آپلود عکس و فیلم جدید</span>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+                <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">بخش‌های مدیریتی</div>
+
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                    <i class="fa-solid fa-chart-pie w-5 text-center text-sm"></i>
+                    <div class="text-right flex-1">
+                        <div>داشبورد و آمار کلی</div>
+                        <div class="text-[10px] opacity-75 font-normal">نمای تحلیلی و نمودارها</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('upload')" data-tab="upload" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up w-5 text-center text-sm text-cyan-500"></i>
+                    <div class="text-right flex-1">
+                        <div>آپلود سریع رسانه</div>
+                        <div class="text-[10px] text-slate-400 font-normal">Drag & Drop عکس و ویدیو</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('gallery')" data-tab="gallery" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-images w-5 text-center text-sm text-indigo-500"></i>
+                    <div class="text-right flex-1">
+                        <div>گالری و مدیریت فایل‌ها</div>
+                        <div class="text-[10px] text-slate-400 font-normal">جستجو، فیلتر و پیش‌نمایش</div>
+                    </div>
+                    <span id="sidebarTotalBadge" class="px-2 py-0.5 text-[10px] rounded-md bg-indigo-500/15 text-indigo-500 font-bold">۶</span>
+                </button>
+
+                <button onclick="switchTab('folders')" data-tab="folders" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-folder-tree w-5 text-center text-sm text-amber-500"></i>
+                    <div class="text-right flex-1">
+                        <div>پوشه‌ها و دسته‌بندی‌ها</div>
+                        <div class="text-[10px] text-slate-400 font-normal">سازماندهی موضوعی محتوا</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-hard-drive w-5 text-center text-sm text-emerald-500"></i>
+                    <div class="text-right flex-1">
+                        <div>تنظیمات و فضای ذخیره‌سازی</div>
+                        <div class="text-[10px] text-slate-400 font-normal">مدیریت IndexedDB و سهمیه</div>
+                    </div>
+                </button>
+            </nav>
+
+            <!-- Storage Quota Meter in Sidebar Footer -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800/80 space-y-2.5">
+                <div class="bg-slate-100 dark:bg-slate-850 p-3.5 rounded-2xl">
+                    <div class="flex items-center justify-between text-xs mb-1.5">
+                        <span class="font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-database text-cyan-500"></i> فضای مصرف‌شده
+                        </span>
+                        <span id="sidebarStoragePercent" class="font-bold text-cyan-600 dark:text-cyan-400">۱۴٪</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div id="sidebarStorageBar" class="h-full bg-gradient-to-l from-cyan-500 to-blue-600 rounded-full transition-all duration-500" style="width: 14%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1.5">
+                        <span id="sidebarUsedText">۷۲.۴ MB مصرف‌شده</span>
+                        <span id="sidebarQuotaText">سهمیه: 500 MB</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Top Header Bar -->
+            <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3.5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 id="headerTitle" class="font-bold text-base sm:text-lg text-slate-900 dark:text-white">داشبورد و آمار کلی رسانه</h2>
+                                <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    <i class="fa-solid fa-circle-check text-[9px]"></i> ذخیره‌سازی پایدار IndexedDB فعال
+                                </span>
+                            </div>
+                            <p id="headerSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">پایش لحظه‌ای حجم فایل‌ها، تعداد تصاویر و ویدیوها و توزیع دسته‌بندی‌ها</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <!-- Quick Search Bar -->
+                        <div class="relative hidden md:block">
+                            <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input id="globalQuickSearch" onkeyup="handleGlobalSearch(this.value)" type="text" placeholder="جستجوی سریع در گالری..." class="w-56 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-8 pl-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        </div>
+
+                        <!-- Quick Upload Trigger -->
+                        <button onclick="switchTab('upload')" class="px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i>
+                            <span class="hidden sm:inline">آپلود سریع</span>
+                        </button>
+
+                        <!-- Dark/Light Theme Toggle -->
+                        <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 transition" title="تغییر حالت شب و روز">
+                            <i id="themeIcon" class="fa-solid fa-sun"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Views Wrapper -->
+            <main class="flex-1 p-4 sm:p-6 max-w-[1600px] w-full mx-auto space-y-6">
+
+                <!-- ================================================================= -->
+                <!-- VIEW 1: DASHBOARD & ANALYTICS OVERVIEW                            -->
+                <!-- ================================================================= -->
+                <section id="view-dashboard" class="view-section space-y-6 animate-fade-in">
+                    <!-- 4 KPI Stat Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <!-- Total Media -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">تعداد کل فایل‌های رسانه‌ای</p>
+                                    <h3 id="kpiTotalCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۶</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span id="kpiApprovedBadge" class="text-emerald-600 dark:text-emerald-400 font-semibold">۴ فایل تأییدشده</span>
+                                <button onclick="switchTab('gallery')" class="text-cyan-600 dark:text-cyan-400 hover:underline">مشاهده همه ←</button>
+                            </div>
+                        </div>
+
+                        <!-- Total Images -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-indigo-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">تعداد تصاویر (Photos)</p>
+                                    <h3 id="kpiImageCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۴</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span id="kpiImageSize" class="text-slate-500 dark:text-slate-400">حجم تصاویر: 8.4 MB</span>
+                                <span class="text-indigo-500 font-semibold">JPG / PNG / SVG</span>
+                            </div>
+                        </div>
+
+                        <!-- Total Videos -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-purple-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">تعداد ویدیوها (Videos)</p>
+                                    <h3 id="kpiVideoCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۲</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-video"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span id="kpiVideoSize" class="text-slate-500 dark:text-slate-400">حجم ویدیوها: 64.0 MB</span>
+                                <span class="text-purple-500 font-semibold">MP4 / WebM</span>
+                            </div>
+                        </div>
+
+                        <!-- Storage Quota Status -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-emerald-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">حجم کل فضای مصرف‌شده</p>
+                                    <h3 id="kpiTotalSize" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">72.4 MB</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-server"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span id="kpiQuotaFree" class="text-emerald-600 dark:text-emerald-400 font-semibold">427.6 MB فضای آزاد</span>
+                                <span id="kpiQuotaPct" class="text-slate-400">۱۴.۵٪ پر شده</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Monthly Upload & Storage Trend Chart -->
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                                <div>
+                                    <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-chart-column text-cyan-500"></i>
+                                        روند آپلود و حجم مصرفی ماهانه
+                                    </h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">مقایسه تعداد فایل‌های بارگذاری‌شده و حجم ذخیره‌سازی (مگابایت)</p>
+                                </div>
+                            </div>
+                            <div class="relative flex-1 min-h-[260px] w-full">
+                                <canvas id="monthlyTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Category Distribution Donut Chart -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col">
+                            <div class="mb-4">
+                                <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-pie text-indigo-500"></i>
+                                    سهم دسته‌بندی‌های محتوا
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">توزیع فایل‌ها بر اساس پوشه‌های سازمانی</p>
+                            </div>
+                            <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+                                <canvas id="categoryDonutChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Uploads Quick Strip -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">آخرین رسانه‌های بارگذاری‌شده</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">برای پیش‌نمایش تمام‌صفحه یا ویرایش مشخصات روی هر کارت کلیک کنید</p>
+                            </div>
+                            <button onclick="switchTab('gallery')" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-cyan-500 hover:text-white text-xs font-semibold transition">
+                                مشاهده گالری کامل
+                            </button>
+                        </div>
+                        <div id="recentMediaGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================= -->
+                <!-- VIEW 2: QUICK MEDIA UPLOAD (DRAG & DROP + METADATA)               -->
+                <!-- ================================================================= -->
+                <section id="view-upload" class="view-section hidden space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Drag & Drop Zone -->
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+                            <div>
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-cloud-arrow-up text-cyan-500"></i>
+                                    بارگذاری عکس و فیلم (Drag & Drop)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">فایل‌های تصویری (JPG, PNG, WebP, GIF, SVG) و ویدیویی (MP4, WebM, MOV) را بکشید و اینجا رها کنید.</p>
+                            </div>
+
+                            <!-- Dropzone Box -->
+                            <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="cursor-pointer border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-cyan-500 rounded-3xl p-8 sm:p-12 text-center bg-slate-50/70 dark:bg-slate-850/50 transition-all duration-200 flex flex-col items-center justify-center gap-3">
+                                <div class="w-16 h-16 rounded-2xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center text-3xl mb-1">
+                                    <i class="fa-solid fa-photo-film"></i>
+                                </div>
+                                <h4 class="font-bold text-sm sm:text-base text-slate-800 dark:text-white">فایل‌ها را اینجا رها کنید یا برای انتخاب کلیک نمایید</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md">پشتیبانی از آپلود همزمان چندین عکس و ویدیو • ذخیره‌سازی واقعی در پایگاه داده مرورگر (IndexedDB)</p>
+                                <div class="flex flex-wrap justify-center gap-2 mt-2 text-[11px] text-slate-400">
+                                    <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">JPG / PNG / WebP</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">GIF / SVG</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">MP4 / WebM / MOV</span>
+                                </div>
+                                <input id="fileInput" type="file" multiple accept="image/*,video/*" class="hidden" onchange="handleFilesSelected(this.files)">
+                            </div>
+
+                            <!-- Pending Upload Queue Preview -->
+                            <div id="pendingQueueWrapper" class="hidden space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-bold text-xs text-slate-700 dark:text-slate-200">فایل‌های آماده بارگذاری (<span id="pendingCount">0</span> مورد)</h4>
+                                    <button onclick="clearPendingQueue()" class="text-xs text-rose-500 hover:underline">پاک کردن لیست</button>
+                                </div>
+                                <div id="pendingFilesList" class="space-y-2.5 max-h-64 overflow-y-auto">
+                                    <!-- Populated when user selects files -->
+                                </div>
+                            </div>
+
+                            <!-- Simulated Upload Progress Bar -->
+                            <div id="uploadProgressBox" class="hidden p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 space-y-2">
+                                <div class="flex items-center justify-between text-xs font-bold text-cyan-700 dark:text-cyan-300">
+                                    <span id="uploadProgressLabel">در حال پردازش و ذخیره‌سازی در IndexedDB...</span>
+                                    <span id="uploadProgressPct">0%</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="uploadProgressBar" class="h-full bg-gradient-to-l from-cyan-500 to-blue-600 rounded-full transition-all duration-150" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadata Form Before Upload -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-tags text-indigo-500"></i>
+                                        مشخصات و دسته‌بندی فایل‌ها
+                                    </h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">این اطلاعات به فایل‌های انتخاب‌شده اختصاص داده می‌شود.</p>
+                                </div>
+
+                                <div class="space-y-3 text-xs">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">عنوان دلخواه (اختیاری - در صورت خالی بودن نام فایل ثبت می‌شود)</label>
+                                        <input id="upTitleInput" type="text" placeholder="مثلاً: گزارش ویدیویی مرکز داده..." class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">پوشه / دسته‌بندی</label>
+                                        <select id="upCategoryInput" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                            <option value="پروژه‌های IT">پروژه‌های IT</option>
+                                            <option value="مستندات آموزشی">مستندات آموزشی</option>
+                                            <option value="بازاریابی و محتوا">بازاریابی و محتوا</option>
+                                            <option value="گزارش تصویری">گزارش تصویری</option>
+                                            <option value="عمومی">عمومی</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">وضعیت اولیه</label>
+                                        <select id="upStatusInput" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                            <option value="تأییدشده">تأییدشده (آماده استفاده)</option>
+                                            <option value="در انتظار بررسی">در انتظار بررسی</option>
+                                            <option value="آرشیو">آرشیو</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">برچسب‌ها (Tags)</label>
+                                        <input id="upTagsInput" type="text" placeholder="مثلاً: شبکه، سرور، آموزش، ۱۴۰۵" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">توضیحات تکمیلی</label>
+                                        <textarea id="upDescInput" rows="3" placeholder="توضیح کوتاهی درباره محتوای این عکس یا ویدیو بنویسید..." class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button id="startUploadBtn" onclick="processUploadQueue()" class="w-full py-3 rounded-xl bg-gradient-to-l from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/25 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check-double"></i>
+                                ثبت و ذخیره نهایی در گالری
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================= -->
+                <!-- VIEW 3: GALLERY & ADVANCED FILE MANAGER                           -->
+                <!-- ================================================================= -->
+                <section id="view-gallery" class="view-section hidden space-y-5 animate-fade-in">
+                    <!-- Filter, Search, Sort & View Controls Toolbar -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <!-- Search Input -->
+                            <div class="relative flex-1 min-w-[220px]">
+                                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input id="gallerySearchInput" onkeyup="renderGallery()" type="text" placeholder="جستجو بر اساس عنوان، برچسب یا توضیحات..." class="w-full bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl pr-9 pl-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            </div>
+
+                            <!-- Filters Group -->
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <!-- Media Type Filter -->
+                                <select id="filterType" onchange="renderGallery()" class="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="all">همه رسانه‌ها</option>
+                                    <option value="image">فقط عکس‌ها</option>
+                                    <option value="video">فقط فیلم‌ها</option>
+                                </select>
+
+                                <!-- Category Filter -->
+                                <select id="filterCategory" onchange="renderGallery()" class="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="all">همه دسته‌بندی‌ها</option>
+                                    <option value="پروژه‌های IT">پروژه‌های IT</option>
+                                    <option value="مستندات آموزشی">مستندات آموزشی</option>
+                                    <option value="بازاریابی و محتوا">بازاریابی و محتوا</option>
+                                    <option value="گزارش تصویری">گزارش تصویری</option>
+                                    <option value="عمومی">عمومی</option>
+                                </select>
+
+                                <!-- Status Filter -->
+                                <select id="filterStatus" onchange="renderGallery()" class="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="all">همه وضعیت‌ها</option>
+                                    <option value="تأییدشده">تأییدشده</option>
+                                    <option value="در انتظار بررسی">در انتظار بررسی</option>
+                                    <option value="آرشیو">آرشیو</option>
+                                </select>
+
+                                <!-- Sort Selector -->
+                                <select id="sortMedia" onchange="renderGallery()" class="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    <option value="newest">جدیدترین</option>
+                                    <option value="largest">بزرگ‌ترین حجم</option>
+                                    <option value="name">بر اساس نام</option>
+                                </select>
+
+                                <!-- Grid / List View Switcher -->
+                                <div class="flex items-center bg-slate-100 dark:bg-slate-850 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <button id="btnGridView" onclick="setGalleryView('grid')" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-cyan-500 shadow-sm transition" title="نمای شبکه‌ای">
+                                        <i class="fa-solid fa-grip"></i>
+                                    </button>
+                                    <button id="btnListView" onclick="setGalleryView('list')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition" title="نمای جدولی / لیستی">
+                                        <i class="fa-solid fa-list"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Action Bar (Visible when items are selected) -->
+                        <div id="bulkActionsBar" class="hidden pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 text-xs">
+                                <label class="inline-flex items-center gap-2 cursor-pointer font-semibold">
+                                    <input id="selectAllCheckbox" type="checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 rounded accent-cyan-500">
+                                    <span>انتخاب همه موارد نمایش‌داده‌شده</span>
+                                </label>
+                                <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 font-bold">
+                                    <span id="selectedCountBadge">0</span> فایل انتخاب شده
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <select id="bulkCategorySelect" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5">
+                                    <option value="">تغییر دسته‌بندی گروهی...</option>
+                                    <option value="پروژه‌های IT">پروژه‌های IT</option>
+                                    <option value="مستندات آموزشی">مستندات آموزشی</option>
+                                    <option value="بازاریابی و محتوا">بازاریابی و محتوا</option>
+                                    <option value="گزارش تصویری">گزارش تصویری</option>
+                                    <option value="عمومی">عمومی</option>
+                                </select>
+                                <button onclick="applyBulkCategory()" class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold transition">اعمال دسته</button>
+                                <button onclick="deleteSelectedBulk()" class="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-trash-can"></i> حذف گروهی
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gallery Output Container (Grid or List) -->
+                    <div id="galleryContainer">
+                        <!-- Dynamically populated -->
+                    </div>
+                </section>
+
+                <!-- ================================================================= -->
+                <!-- VIEW 4: FOLDERS & CATEGORIES                                      -->
+                <!-- ================================================================= -->
+                <section id="view-folders" class="view-section hidden space-y-6 animate-fade-in">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="mb-5">
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-folder-open text-amber-500"></i>
+                                پوشه‌ها و دسته‌بندی‌های سازمانی
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">برای مشاهده محتوای هر پوشه در گالری، روی کارت آن کلیک کنید.</p>
+                        </div>
+                        <div id="foldersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================= -->
+                <!-- VIEW 5: SETTINGS & STORAGE MANAGEMENT                             -->
+                <!-- ================================================================= -->
+                <section id="view-settings" class="view-section hidden space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Storage Details -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-hard-drive text-emerald-500"></i>
+                                مدیریت فضای ذخیره‌سازی مرورگر (IndexedDB)
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                تمامی عکس‌ها و ویدیوهایی که آپلود می‌کنید در پایگاه داده محلی مرورگر شما ذخیره می‌شوند تا حتی پس از بستن یا رفرش کردن صفحه نیز در دسترس باشند.
+                            </p>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">کل فایل‌های ذخیره‌شده:</span>
+                                    <span id="setTotalFiles" class="font-bold">۶ فایل</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">فضای مصرفی تصاویر:</span>
+                                    <span id="setImagesSize" class="font-bold text-indigo-500">8.4 MB</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">فضای مصرفی ویدیوها:</span>
+                                    <span id="setVideosSize" class="font-bold text-purple-500">64.0 MB</span>
+                                </div>
+                                <div class="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+                                    <span class="font-bold">سهمیه کل پنل مدیریتی:</span>
+                                    <span class="font-bold text-cyan-500">500 MB</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-3 pt-2">
+                                <button onclick="resetDemoData()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-bold transition flex items-center gap-2">
+                                    <i class="fa-solid fa-rotate-right"></i> بازنشانی نمونه‌های پیش‌فرض
+                                </button>
+                                <button onclick="clearAllUploadedMedia()" class="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white text-xs font-bold transition flex items-center gap-2">
+                                    <i class="fa-solid fa-trash"></i> پاکسازی کامل پایگاه داده
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- System Preferences -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-cyan-500"></i>
+                                تنظیمات نمایش و بارگذاری
+                            </h3>
+                            <div class="space-y-3 text-xs">
+                                <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
+                                    <div>
+                                        <div class="font-bold text-slate-800 dark:text-slate-200">حالت نمایش تیره / روشن</div>
+                                        <div class="text-slate-400 mt-0.5">تغییر تم ظاهری داشبورد مدیریتی</div>
+                                    </div>
+                                    <button onclick="toggleTheme()" class="px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-semibold">تغییر تم</button>
+                                </div>
+                                <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
+                                    <div>
+                                        <div class="font-bold text-slate-800 dark:text-slate-200">استخراج خودکار متادیتا</div>
+                                        <div class="text-slate-400 mt-0.5">تشخیص خودکار رزولوشن تصویر و مدت زمان ویدیو هنگام آپلود</div>
+                                    </div>
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-500 font-bold">فعال</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // INDEXEDDB PERSISTENT STORAGE ENGINE
+        // =========================================================================
+        const DB_NAME = "MediaAssetHubDB";
+        const DB_VERSION = 1;
+        const STORE_NAME = "mediaItems";
+        const STORAGE_QUOTA_BYTES = 500 * 1024 * 1024; // 500 MB Quota
+
+        let db = null;
+        let mediaList = [];
+        let pendingFiles = [];
+        let selectedIds = new Set();
+        let currentViewMode = 'grid'; // 'grid' | 'list'
+        let currentLightboxItemId = null;
+        let charts = {};
+
+        // Open or Initialize IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME, { keyPath: "id" });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => {
+                    console.error("IndexedDB Error:", e);
+                    reject(e);
+                };
+            });
+        }
+
+        function saveItemToDB(item) {
+            return new Promise((resolve, reject) => {
+                if (!db) return resolve();
+                const tx = db.transaction(STORE_NAME, "readwrite");
+                const store = tx.objectStore(STORE_NAME);
+                // Store everything including Blob if present (URLs are recreated on load)
+                const record = { ...item };
+                delete record.url;
+                store.put(record);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        function deleteItemFromDB(id) {
+            return new Promise((resolve, reject) => {
+                if (!db) return resolve();
+                const tx = db.transaction(STORE_NAME, "readwrite");
+                tx.objectStore(STORE_NAME).delete(id);
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        function clearAllDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) return resolve();
+                const tx = db.transaction(STORE_NAME, "readwrite");
+                tx.objectStore(STORE_NAME).clear();
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        function loadAllFromDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) return resolve([]);
+                const tx = db.transaction(STORE_NAME, "readonly");
+                const req = tx.objectStore(STORE_NAME).getAll();
+                req.onsuccess = () => {
+                    const items = req.result || [];
+                    items.forEach(item => {
+                        if (item.blob) {
+                            item.url = URL.createObjectURL(item.blob);
+                        }
+                    });
+                    resolve(items);
+                };
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        // =========================================================================
+        // GENERATED SAMPLE MEDIA (SVG & ANIMATED CANVAS VIDEO BLOB)
+        // =========================================================================
+        function createSampleSvgDataUrl(title, subtitle, grad1, grad2, iconText) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+                <defs>
+                    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${grad1}"/>
+                        <stop offset="100%" stop-color="${grad2}"/>
+                    </linearGradient>
+                </defs>
+                <rect width="1280" height="720" fill="url(#g)"/>
+                <circle cx="1050" cy="180" r="220" fill="rgba(255,255,255,0.07)"/>
+                <circle cx="220" cy="560" r="280" fill="rgba(255,255,255,0.05)"/>
+                <rect x="90" y="90" width="1100" height="540" rx="32" fill="rgba(15,23,42,0.45)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                <text x="640" y="310" font-family="sans-serif" font-size="64" font-weight="bold" fill="#ffffff" text-anchor="middle">${iconText}</text>
+                <text x="640" y="395" font-family="sans-serif" font-size="40" font-weight="bold" fill="#ffffff" text-anchor="middle">${title}</text>
+                <text x="640" y="455" font-family="sans-serif" font-size="24" fill="#cbd5e1" text-anchor="middle">${subtitle}</text>
+            </svg>`;
+            return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        }
+
+        // Generates a real playable WebM video Blob using HTML5 Canvas + MediaRecorder
+        function generateSampleVideoBlob(label, color1, color2) {
+            return new Promise((resolve) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 640;
+                    canvas.height = 360;
+                    const ctx = canvas.getContext('2d');
+
+                    if (!window.MediaRecorder || !canvas.captureStream) {
+                        resolve(null);
+                        return;
+                    }
+
+                    const stream = canvas.captureStream(24);
+                    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                    const chunks = [];
+                    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+                    recorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        resolve(blob);
+                    };
+
+                    recorder.start();
+                    let frame = 0;
+                    const totalFrames = 48; // ~2 seconds real video
+                    const timer = setInterval(() => {
+                        const grad = ctx.createLinearGradient(0, 0, 640, 360);
+                        grad.addColorStop(0, color1);
+                        grad.addColorStop(1, color2);
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(0, 0, 640, 360);
+
+                        // Animated wave bars
+                        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+                        for (let i = 0; i < 12; i++) {
+                            const h = 40 + Math.sin((frame * 0.25) + i) * 35;
+                            ctx.fillRect(140 + i * 32, 230 - h, 18, h);
+                        }
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 24px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(label, 320, 115);
+
+                        ctx.font = '15px sans-serif';
+                        ctx.fillStyle = '#e2e8f0';
+                        ctx.fillText(`AI Media Stream • Frame ${frame + 1}/${totalFrames}`, 320, 150);
+
+                        frame++;
+                        if (frame >= totalFrames) {
+                            clearInterval(timer);
+                            recorder.stop();
+                        }
+                    }, 35);
+                } catch (err) {
+                    resolve(null);
+                }
+            });
+        }
+
+        async function seedInitialSamples() {
+            const sampleVideoBlob1 = await generateSampleVideoBlob("گزارش پایش زنده مرکز داده", "#0f172a", "#0284c7");
+            const sampleVideoBlob2 = await generateSampleVideoBlob("آموزش سامانه هوشمند IT", "#1e1b4b", "#7c3aed");
+
+            const samples = [
+                {
+                    id: "sample-1",
+                    title: "توپولوژی شبکه و سرورهای مرکزی سازمان",
+                    fileName: "network_topology_2026.svg",
+                    type: "image",
+                    format: "SVG",
+                    size: 2450000,
+                    dimensions: "1920 × 1080",
+                    duration: null,
+                    category: "پروژه‌های IT",
+                    status: "تأییدشده",
+                    tags: ["شبکه", "سرور", "زیرساخت"],
+                    description: "نمودار معماری یکپارچه سوئیچ‌های Core و سرورهای پردازشی مرکز داده.",
+                    date: "۱۴۰۵/۰۸/۲۸",
+                    timestamp: Date.now() - 400000,
+                    url: createSampleSvgDataUrl("توپولوژی شبکه و سرورهای مرکزی", "معماری زیرساخت هوشمند سازمان • 1920x1080", "#0f172a", "#0369a1", "🖥️")
+                },
+                {
+                    id: "sample-2",
+                    title: "ویدیو گزارش عملکرد مرکز فرماندهی AI",
+                    fileName: "ai_command_overview.webm",
+                    type: "video",
+                    format: "WEBM",
+                    size: sampleVideoBlob1 ? sampleVideoBlob1.size + 18500000 : 18500000,
+                    dimensions: "1280 × 720",
+                    duration: "00:02",
+                    category: "گزارش تصویری",
+                    status: "تأییدشده",
+                    tags: ["ویدیو", "گزارش", "هوش مصنوعی"],
+                    description: "ویدیوی مستند از پایش لحظه‌ای ترافیک شبکه و نرخ پاسخگویی خودکار.",
+                    date: "۱۴۰۵/۰۸/۲۹",
+                    timestamp: Date.now() - 300000,
+                    blob: sampleVideoBlob1,
+                    url: sampleVideoBlob1 ? URL.createObjectURL(sampleVideoBlob1) : createSampleSvgDataUrl("ویدیو گزارش عملکرد مرکز فرماندهی", "پیش‌نمایش ویدیویی • 1280x720", "#0f172a", "#0284c7", "🎬")
+                },
+                {
+                    id: "sample-3",
+                    title: "اینفوگرافیک امنیت اطلاعات و فایروال",
+                    fileName: "security_infographic.svg",
+                    type: "image",
+                    format: "SVG",
+                    size: 1840000,
+                    dimensions: "1600 × 900",
+                    duration: null,
+                    category: "مستندات آموزشی",
+                    status: "تأییدشده",
+                    tags: ["امنیت", "فایروال", "آموزش"],
+                    description: "راهنمای تصویری استانداردهای رمز عبور و حفاظت از داده‌های سازمانی.",
+                    date: "۱۴۰۵/۰۸/۳۰",
+                    timestamp: Date.now() - 200000,
+                    url: createSampleSvgDataUrl("استاندارد امنیت اطلاعات و فایروال", "دستورالعمل آموزشی کارکنان سازمان", "#064e3b", "#059669", "🛡️")
+                },
+                {
+                    id: "sample-4",
+                    title: "ویدیو آموزش ثبت تیکت در دستیار هوشمند",
+                    fileName: "it_assistant_tutorial.webm",
+                    type: "video",
+                    format: "WEBM",
+                    size: sampleVideoBlob2 ? sampleVideoBlob2.size + 24200000 : 24200000,
+                    dimensions: "1280 × 720",
+                    duration: "00:02",
+                    category: "مستندات آموزشی",
+                    status: "در انتظار بررسی",
+                    tags: ["آموزش", "تیکتینگ", "دستیار"],
+                    description: "آموزش گام‌به‌گام نحوه ثبت درخواست و دریافت راهکار فوری از هوش مصنوعی.",
+                    date: "۱۴۰۵/۰۹/۰۱",
+                    timestamp: Date.now() - 100000,
+                    blob: sampleVideoBlob2,
+                    url: sampleVideoBlob2 ? URL.createObjectURL(sampleVideoBlob2) : createSampleSvgDataUrl("آموزش سامانه دستیار هوشمند IT", "محتوای آموزشی ویدیویی", "#1e1b4b", "#7c3aed", "🎥")
+                },
+                {
+                    id: "sample-5",
+                    title: "بنر کمپین تحول دیجیتال واحد فناوری",
+                    fileName: "digital_transformation_banner.svg",
+                    type: "image",
+                    format: "SVG",
+                    size: 3120000,
+                    dimensions: "2560 × 1440",
+                    duration: null,
+                    category: "بازاریابی و محتوا",
+                    status: "تأییدشده",
+                    tags: ["بنر", "تحول دیجیتال", "تبلیغات"],
+                    description: "طرح گرافیکی معرفی دستاوردهای هوشمندسازی واحد IT برای پورتال داخلی.",
+                    date: "۱۴۰۵/۰۹/۰۱",
+                    timestamp: Date.now() - 50000,
+                    url: createSampleSvgDataUrl("کمپین تحول دیجیتال واحد IT", "بنر اطلاع‌رسانی پورتال سازمانی", "#311042", "#db2777", "✨")
+                },
+                {
+                    id: "sample-6",
+                    title: "مستندات تحویل تجهیزات سخت‌افزاری",
+                    fileName: "hardware_inventory_guide.svg",
+                    type: "image",
+                    format: "SVG",
+                    size: 1150000,
+                    dimensions: "1280 × 720",
+                    duration: null,
+                    category: "عمومی",
+                    status: "آرشیو",
+                    tags: ["سخت‌افزار", "اموال"],
+                    description: "فرم و راهنمای تصویری کدگذاری و ثبت شماره سریال تجهیزات جدید.",
+                    date: "۱۴۰۵/۰۸/۲۰",
+                    timestamp: Date.now() - 500000,
+                    url: createSampleSvgDataUrl("پروتکل ثبت و تحویل دارایی‌های IT", "بخش مدیریت تجهیزات و اموال", "#1e293b", "#475569", "📦")
+                }
+            ];
+
+            for (const item of samples) {
+                await saveItemToDB(item);
+            }
+            mediaList = samples;
+        }
+
+        // =========================================================================
+        // NAVIGATION & THEME CONTROLS
+        // =========================================================================
+        const viewMeta = {
+            dashboard: { title: "داشبورد و آمار کلی رسانه", subtitle: "پایش لحظه‌ای حجم فایل‌ها، تعداد تصاویر و ویدیوها و توزیع دسته‌بندی‌ها" },
+            upload: { title: "آپلود سریع عکس و فیلم", subtitle: "بارگذاری فایل‌ها با کشیدن و رها کردن (Drag & Drop) و ذخیره دائمی در مرورگر" },
+            gallery: { title: "گالری و مدیریت پیشرفته فایل‌ها", subtitle: "جستجو، فیلتر، انتخاب گروهی، ویرایش مشخصات و پیش‌نمایش تمام‌صفحه (Lightbox)" },
+            folders: { title: "پوشه‌ها و دسته‌بندی‌های محتوا", subtitle: "دسترسی سریع به فایل‌ها بر اساس ساختار پوشه‌های سازمانی" },
+            settings: { title: "تنظیمات و مدیریت فضای ذخیره‌سازی", subtitle: "کنترل سهمیه فضا، پایگاه داده IndexedDB و تنظیمات نمایش" }
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`view-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20";
+                } else {
+                    btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all";
+                }
+            });
+
+            if (viewMeta[tabId]) {
+                document.getElementById('headerTitle').textContent = viewMeta[tabId].title;
+                document.getElementById('headerSubtitle').textContent = viewMeta[tabId].subtitle;
+            }
+
+            if (tabId === 'gallery') renderGallery();
+            if (tabId === 'folders') renderFolders();
+            if (tabId === 'dashboard') {
+                renderRecentMedia();
+                setTimeout(() => {
+                    Object.values(charts).forEach(c => c && c.resize());
+                }, 50);
+            }
+
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('translate-x-full') && window.innerWidth < 1024) {
+                toggleSidebar();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('translate-x-full');
+            document.getElementById('mobileOverlay').classList.toggle('hidden');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-slate-700';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            }
+            updateChartsTheme();
+        }
+
+        function handleGlobalSearch(val) {
+            if (val.trim().length > 0) {
+                switchTab('gallery');
+                document.getElementById('gallerySearchInput').value = val;
+                renderGallery();
+            }
+        }
+
+        // =========================================================================
+        // DRAG & DROP AND FILE UPLOAD PROCESSING
+        // =========================================================================
+        function setupDropzone() {
+            const dz = document.getElementById('dropZone');
+            ['dragenter', 'dragover'].forEach(evt => {
+                dz.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dz.classList.add('dropzone-active');
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                dz.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dz.classList.remove('dropzone-active');
+                });
+            });
+            dz.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    handleFilesSelected(files);
+                }
+            });
+        }
+
+        function handleFilesSelected(fileList) {
+            const validFiles = Array.from(fileList).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+            if (validFiles.length === 0) {
+                showToast('لطفاً فقط فایل‌های تصویری یا ویدیویی معتبر انتخاب کنید.', 'warning');
+                return;
+            }
+            pendingFiles.push(...validFiles);
+            renderPendingQueue();
+            showToast(`${toPersianDigits(validFiles.length)} فایل به صف آپلود اضافه شد.`, 'info');
+        }
+
+        function renderPendingQueue() {
+            const wrapper = document.getElementById('pendingQueueWrapper');
+            const list = document.getElementById('pendingFilesList');
+            const countSpan = document.getElementById('pendingCount');
+
+            if (pendingFiles.length === 0) {
+                wrapper.classList.add('hidden');
+                return;
+            }
+
+            wrapper.classList.remove('hidden');
+            countSpan.textContent = toPersianDigits(pendingFiles.length);
+
+            list.innerHTML = pendingFiles.map((file, idx) => {
+                const isVideo = file.type.startsWith('video/');
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 text-xs">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl ${isVideo ? 'bg-purple-500/15 text-purple-500' : 'bg-indigo-500/15 text-indigo-500'} flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${isVideo ? 'fa-video' : 'fa-image'}"></i>
+                            </div>
+                            <div class="truncate">
+                                <div class="font-bold text-slate-800 dark:text-slate-200 truncate">${file.name}</div>
+                                <div class="text-[11px] text-slate-400">${formatBytes(file.size)} • ${isVideo ? 'ویدیو' : 'تصویر'}</div>
+                            </div>
+                        </div>
+                        <button onclick="removePendingFile(${idx})" class="p-1.5 text-slate-400 hover:text-rose-500 transition">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removePendingFile(index) {
+            pendingFiles.splice(index, 1);
+            renderPendingQueue();
+        }
+
+        function clearPendingQueue() {
+            pendingFiles = [];
+            document.getElementById('fileInput').value = '';
+            renderPendingQueue();
+        }
+
+        // Extract real dimensions & video duration from File
+        function extractMediaMetadata(file) {
+            return new Promise((resolve) => {
+                const objectUrl = URL.createObjectURL(file);
+                if (file.type.startsWith('image/')) {
+                    const img = new Image();
+                    img.onload = () => {
+                        resolve({
+                            url: objectUrl,
+                            dimensions: `${img.naturalWidth} × ${img.naturalHeight}`,
+                            duration: null
+                        });
+                    };
+                    img.onerror = () => {
+                        resolve({ url: objectUrl, dimensions: "نامشخص", duration: null });
+                    };
+                    img.src = objectUrl;
+                } else if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.onloadedmetadata = () => {
+                        const dur = formatDuration(video.duration);
+                        resolve({
+                            url: objectUrl,
+                            dimensions: `${video.videoWidth || 1280} × ${video.videoHeight || 720}`,
+                            duration: dur
+                        });
+                    };
+                    video.onerror = () => {
+                        resolve({ url: objectUrl, dimensions: "1280 × 720", duration: "00:00" });
+                    };
+                    video.src = objectUrl;
+                } else {
+                    resolve({ url: objectUrl, dimensions: "—", duration: null });
+                }
+            });
+        }
+
+        async function processUploadQueue() {
+            if (pendingFiles.length === 0) {
+                showToast('ابتدا یک یا چند عکس یا فیلم انتخاب کنید.', 'warning');
+                return;
+            }
+
+            const customTitle = document.getElementById('upTitleInput').value.trim();
+            const category = document.getElementById('upCategoryInput').value;
+            const status = document.getElementById('upStatusInput').value;
+            const tagsRaw = document.getElementById('upTagsInput').value.trim();
+            const desc = document.getElementById('upDescInput').value.trim() || "بارگذاری‌شده توسط مدیر سیستم";
+            const tags = tagsRaw ? tagsRaw.split(/[,،]/).map(t => t.trim()).filter(Boolean) : [category];
+
+            const progressBox = document.getElementById('uploadProgressBox');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressPct = document.getElementById('uploadProgressPct');
+            const uploadBtn = document.getElementById('startUploadBtn');
+
+            progressBox.classList.remove('hidden');
+            uploadBtn.disabled = true;
+
+            const total = pendingFiles.length;
+            const todayPersian = new Intl.DateTimeFormat('fa-IR').format(new Date());
+
+            for (let i = 0; i < total; i++) {
+                const file = pendingFiles[i];
+                const pct = Math.round(((i + 0.5) / total) * 100);
+                progressBar.style.width = `${pct}%`;
+                progressPct.textContent = `${toPersianDigits(pct)}٪`;
+
+                const meta = await extractMediaMetadata(file);
+                const ext = file.name.split('.').pop().toUpperCase();
+                const isVideo = file.type.startsWith('video/');
+
+                const newItem = {
+                    id: "media-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
+                    title: (customTitle && total === 1) ? customTitle : (customTitle ? `${customTitle} (${i + 1})` : file.name.replace(/\.[^/.]+$/, "")),
+                    fileName: file.name,
+                    type: isVideo ? "video" : "image",
+                    format: ext,
+                    size: file.size,
+                    dimensions: meta.dimensions,
+                    duration: meta.duration,
+                    category,
+                    status,
+                    tags,
+                    description: desc,
+                    date: todayPersian,
+                    timestamp: Date.now() + i,
+                    blob: file,
+                    url: meta.url
+                };
+
+                await saveItemToDB(newItem);
+                mediaList.unshift(newItem);
+            }
+
+            progressBar.style.width = "100%";
+            progressPct.textContent = "۱۰۰٪";
+
+            setTimeout(() => {
+                progressBox.classList.add('hidden');
+                progressBar.style.width = "0%";
+                uploadBtn.disabled = false;
+                clearPendingQueue();
+                document.getElementById('upTitleInput').value = "";
+                document.getElementById('upTagsInput').value = "";
+                document.getElementById('upDescInput').value = "";
+
+                refreshAllUI();
+                showToast(`${toPersianDigits(total)} رسانه با موفقیت آپلود و در گالری ذخیره شد!`, 'success');
+                switchTab('gallery');
+            }, 450);
+        }
+
+        // =========================================================================
+        // GALLERY RENDERING (GRID & LIST VIEWS) + BULK SELECTION
+        // =========================================================================
+        function setGalleryView(mode) {
+            currentViewMode = mode;
+            const btnGrid = document.getElementById('btnGridView');
+            const btnList = document.getElementById('btnListView');
+
+            if (mode === 'grid') {
+                btnGrid.className = "px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-cyan-500 shadow-sm transition";
+                btnList.className = "px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition";
+            } else {
+                btnList.className = "px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-cyan-500 shadow-sm transition";
+                btnGrid.className = "px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition";
+            }
+            renderGallery();
+        }
+
+        function getFilteredMedia() {
+            const q = (document.getElementById('gallerySearchInput')?.value || "").trim().toLowerCase();
+            const typeFilter = document.getElementById('filterType')?.value || "all";
+            const catFilter = document.getElementById('filterCategory')?.value || "all";
+            const statusFilter = document.getElementById('filterStatus')?.value || "all";
+            const sortBy = document.getElementById('sortMedia')?.value || "newest";
+
+            let list = mediaList.filter(item => {
+                const matchType = typeFilter === 'all' || item.type === typeFilter;
+                const matchCat = catFilter === 'all' || item.category === catFilter;
+                const matchStatus = statusFilter === 'all' || item.status === statusFilter;
+                const matchQuery = !q ||
+                    item.title.toLowerCase().includes(q) ||
+                    item.fileName.toLowerCase().includes(q) ||
+                    item.description.toLowerCase().includes(q) ||
+                    (item.tags && item.tags.some(t => t.toLowerCase().includes(q)));
+                return matchType && matchCat && matchStatus && matchQuery;
+            });
+
+            if (sortBy === 'newest') {
+                list.sort((a, b) => b.timestamp - a.timestamp);
+            } else if (sortBy === 'largest') {
+                list.sort((a, b) => b.size - a.size);
+            } else if (sortBy === 'name') {
+                list.sort((a, b) => a.title.localeCompare(b.title, 'fa'));
+            }
+
+            return list;
+        }
+
+        function renderGallery() {
+            const container = document.getElementById('galleryContainer');
+            const items = getFilteredMedia();
+
+            updateBulkBarUI();
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-3">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-850 text-slate-400 flex items-center justify-center text-2xl mx-auto">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-800 dark:text-white">هیچ عکس یا ویدیویی با این فیلتر یافت نشد</h4>
+                        <p class="text-xs text-slate-500">فیلترها را تغییر دهید یا یک رسانه جدید بارگذاری کنید.</p>
+                        <button onclick="switchTab('upload')" class="px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold">آپلود رسانه جدید</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentViewMode === 'grid') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        ${items.map(item => buildMediaCardHTML(item)).join('')}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-400">
+                                        <th class="py-3 px-4 w-10">
+                                            <input type="checkbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 rounded accent-cyan-500">
+                                        </th>
+                                        <th class="py-3 px-3">پیش‌نمایش</th>
+                                        <th class="py-3 px-3">عنوان و نام فایل</th>
+                                        <th class="py-3 px-3">دسته‌بندی</th>
+                                        <th class="py-3 px-3">ابعاد / مدت</th>
+                                        <th class="py-3 px-3">حجم</th>
+                                        <th class="py-3 px-3">وضعیت</th>
+                                        <th class="py-3 px-3">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                    ${items.map(item => buildMediaRowHTML(item)).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function buildMediaCardHTML(item) {
+            const isSelected = selectedIds.has(item.id);
+            const isVideo = item.type === 'video';
+            const statusColor = item.status === 'تأییدشده'
+                ? 'bg-emerald-500/15 text-emerald-500'
+                : item.status === 'در انتظار بررسی'
+                    ? 'bg-amber-500/15 text-amber-500'
+                    : 'bg-slate-500/15 text-slate-400';
+
+            const thumbnailMarkup = isVideo && item.blob
+                ? `<video src="${item.url}" muted preload="metadata" class="w-full h-full object-cover group-hover:scale-105 transition duration-300"></video>`
+                : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">`;
+
+            return `
+                <div class="group bg-white dark:bg-slate-900 border ${isSelected ? 'border-cyan-500 ring-2 ring-cyan-500/30' : 'border-slate-200 dark:border-slate-800'} rounded-2xl overflow-hidden shadow-sm hover:border-cyan-500/50 transition flex flex-col justify-between">
+                    <!-- Thumbnail Box -->
+                    <div class="relative aspect-video bg-slate-950 overflow-hidden cursor-pointer" onclick="openLightbox('${item.id}')">
+                        ${thumbnailMarkup}
+
+                        <!-- Top Overlay Controls -->
+                        <div class="absolute top-2.5 right-2.5 z-10" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 rounded accent-cyan-500 cursor-pointer shadow">
+                        </div>
+
+                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded-lg bg-slate-950/75 backdrop-blur-sm text-white font-mono text-[10px] font-bold">
+                                ${item.format}
+                            </span>
+                        </div>
+
+                        ${isVideo ? `
+                            <div class="absolute inset-0 flex items-center justify-center bg-slate-950/25 group-hover:bg-slate-950/10 transition">
+                                <div class="w-11 h-11 rounded-full bg-cyan-500/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-play mr-[-2px]"></i>
+                                </div>
+                            </div>
+                            <span class="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-950/80 text-white font-mono text-[10px] font-bold">
+                                ${item.duration || '00:15'}
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 text-[11px] mb-1.5">
+                                <span class="text-cyan-600 dark:text-cyan-400 font-semibold">${item.category}</span>
+                                <span class="px-2 py-0.5 rounded-md font-bold ${statusColor}">${item.status}</span>
+                            </div>
+                            <h4 onclick="openLightbox('${item.id}')" class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1 cursor-pointer hover:text-cyan-500 transition">
+                                ${item.title}
+                            </h4>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-1">${item.description}</p>
+                        </div>
+
+                        <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>${formatBytes(item.size)}</span>
+                            <span>${item.dimensions}</span>
+                            <button onclick="openLightbox('${item.id}')" class="text-cyan-600 dark:text-cyan-400 font-bold hover:underline">
+                                پیش‌نمایش
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildMediaRowHTML(item) {
+            const isSelected = selectedIds.has(item.id);
+            const isVideo = item.type === 'video';
+            const statusColor = item.status === 'تأییدشده'
+                ? 'bg-emerald-500/15 text-emerald-500'
+                : item.status === 'در انتظار بررسی'
+                    ? 'bg-amber-500/15 text-amber-500'
+                    : 'bg-slate-500/15 text-slate-400';
+
+            const thumb = isVideo && item.blob
+                ? `<video src="${item.url}" muted class="w-14 h-10 rounded-lg object-cover bg-slate-950"></video>`
+                : `<img src="${item.url}" class="w-14 h-10 rounded-lg object-cover bg-slate-950">`;
+
+            return `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-850/60 transition">
+                    <td class="py-2.5 px-4">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleItemSelect('${item.id}', this.checked)" class="w-4 h-4 rounded accent-cyan-500">
+                    </td>
+                    <td class="py-2.5 px-3 cursor-pointer" onclick="openLightbox('${item.id}')">${thumb}</td>
+                    <td class="py-2.5 px-3">
+                        <div onclick="openLightbox('${item.id}')" class="font-bold text-slate-800 dark:text-slate-200 cursor-pointer hover:text-cyan-500">${item.title}</div>
+                        <div class="text-[10px] font-mono text-slate-400">${item.fileName}</div>
+                    </td>
+                    <td class="py-2.5 px-3 text-cyan-600 dark:text-cyan-400 font-semibold">${item.category}</td>
+                    <td class="py-2.5 px-3 font-mono text-slate-500">${item.dimensions} ${isVideo && item.duration ? `• ${item.duration}` : ''}</td>
+                    <td class="py-2.5 px-3 font-semibold">${formatBytes(item.size)}</td>
+                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-md font-bold text-[11px] ${statusColor}">${item.status}</span></td>
+                    <td class="py-2.5 px-3">
+                        <button onclick="openLightbox('${item.id}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold hover:bg-cyan-500 hover:text-white transition">
+                            باز کردن
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function toggleItemSelect(id, checked) {
+            if (checked) selectedIds.add(id);
+            else selectedIds.delete(id);
+            updateBulkBarUI();
+        }
+
+        function toggleSelectAll(checked) {
+            const visibleItems = getFilteredMedia();
+            visibleItems.forEach(it => {
+                if (checked) selectedIds.add(it.id);
+                else selectedIds.delete(it.id);
+            });
+            renderGallery();
+        }
+
+        function updateBulkBarUI() {
+            const bar = document.getElementById('bulkActionsBar');
+            const badge = document.getElementById('selectedCountBadge');
+            if (!bar) return;
+
+            if (selectedIds.size > 0) {
+                bar.classList.remove('hidden');
+                badge.textContent = toPersianDigits(selectedIds.size);
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        async function applyBulkCategory() {
+            const newCat = document.getElementById('bulkCategorySelect').value;
+            if (!newCat) {
+                showToast('لطفاً یک دسته‌بندی مقصد انتخاب کنید.', 'warning');
+                return;
+            }
+            for (const item of mediaList) {
+                if (selectedIds.has(item.id)) {
+                    item.category = newCat;
+                    await saveItemToDB(item);
+                }
+            }
+            selectedIds.clear();
+            refreshAllUI();
+            showToast(`دسته‌بندی فایل‌های انتخاب‌شده به «${newCat}» تغییر یافت.`, 'success');
+        }
+
+        async function deleteSelectedBulk() {
+            const count = selectedIds.size;
+            for (const id of selectedIds) {
+                await deleteItemFromDB(id);
+            }
+            mediaList = mediaList.filter(it => !selectedIds.has(it.id));
+            selectedIds.clear();
+            refreshAllUI();
+            showToast(`${toPersianDigits(count)} فایل انتخاب‌شده با موفقیت حذف شد.`, 'info');
+        }
+
+        // =========================================================================
+        // LIGHTBOX MODAL (FULL IMAGE/VIDEO PREVIEW + EDIT + DOWNLOAD + DELETE)
+        // =========================================================================
+        function openLightbox(id) {
+            const item = mediaList.find(m => m.id === id);
+            if (!item) return;
+
+            currentLightboxItemId = id;
+            const isVideo = item.type === 'video';
+
+            // Media Player or Image Stage
+            const stage = document.getElementById('lightboxMediaContainer');
+            if (isVideo && item.blob) {
+                stage.innerHTML = `
+                    <video src="${item.url}" controls autoplay class="max-h-[72vh] w-full rounded-xl outline-none shadow-2xl">
+                        مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                    </video>
+                `;
+            } else {
+                stage.innerHTML = `
+                    <img src="${item.url}" alt="${item.title}" class="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl">
+                `;
+            }
+
+            // Badge & Metadata
+            document.getElementById('lbTypeBadge').innerHTML = isVideo
+                ? '<i class="fa-solid fa-video"></i> فایل ویدیویی'
+                : '<i class="fa-solid fa-image"></i> فایل تصویری';
+
+            document.getElementById('lbFormat').textContent = item.format;
+            document.getElementById('lbSize').textContent = formatBytes(item.size);
+            document.getElementById('lbDimensions').textContent = item.dimensions;
+            document.getElementById('lbExtraLabel').textContent = isVideo && item.duration ? "تاریخ / مدت زمان" : "تاریخ آپلود";
+            document.getElementById('lbDate').textContent = isVideo && item.duration ? `${item.date} (${item.duration})` : item.date;
+
+            // Populate Form
+            document.getElementById('lbEditTitle').value = item.title;
+            document.getElementById('lbEditCategory').value = item.category;
+            document.getElementById('lbEditStatus').value = item.status;
+            document.getElementById('lbEditTags').value = (item.tags || []).join('، ');
+            document.getElementById('lbEditDesc').value = item.description || '';
+
+            const modal = document.getElementById('lightboxModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLightbox() {
+            const stage = document.getElementById('lightboxMediaContainer');
+            stage.innerHTML = ''; // Stop video playback immediately
+            currentLightboxItemId = null;
+            const modal = document.getElementById('lightboxModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function saveLightboxChanges() {
+            const item = mediaList.find(m => m.id === currentLightboxItemId);
+            if (!item) return;
+
+            item.title = document.getElementById('lbEditTitle').value.trim() || item.title;
+            item.category = document.getElementById('lbEditCategory').value;
+            item.status = document.getElementById('lbEditStatus').value;
+            const tagsStr = document.getElementById('lbEditTags').value.trim();
+            item.tags = tagsStr ? tagsStr.split(/[,،]/).map(t => t.trim()).filter(Boolean) : [];
+            item.description = document.getElementById('lbEditDesc').value.trim();
+
+            await saveItemToDB(item);
+            refreshAllUI();
+            closeLightbox();
+            showToast('تغییرات مشخصات رسانه ذخیره شد.', 'success');
+        }
+
+        function downloadCurrentMedia() {
+            const item = mediaList.find(m => m.id === currentLightboxItemId);
+            if (!item) return;
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.download = item.fileName || `${item.title}.${item.format.toLowerCase()}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('دانلود فایل آغاز شد.', 'info');
+        }
+
+        async function deleteCurrentMedia() {
+            if (!currentLightboxItemId) return;
+            await deleteItemFromDB(currentLightboxItemId);
+            mediaList = mediaList.filter(m => m.id !== currentLightboxItemId);
+            selectedIds.delete(currentLightboxItemId);
+            closeLightbox();
+            refreshAllUI();
+            showToast('فایل رسانه‌ای حذف شد.', 'info');
+        }
+
+        // =========================================================================
+        // DASHBOARD KPI, RECENT MEDIA, FOLDERS & CHARTS UPDATES
+        // =========================================================================
+        function renderRecentMedia() {
+            const grid = document.getElementById('recentMediaGrid');
+            const recent = [...mediaList].sort((a, b) => b.timestamp - a.timestamp).slice(0, 4);
+            grid.innerHTML = recent.map(item => buildMediaCardHTML(item)).join('');
+        }
+
+        function renderFolders() {
+            const categories = [
+                { name: "پروژه‌های IT", icon: "fa-server", color: "cyan", desc: "مستندات بصری سرورها، شبکه و پروژه‌های زیرساختی" },
+                { name: "مستندات آموزشی", icon: "fa-graduation-cap", color: "indigo", desc: "ویدیوها و اینفوگرافیک‌های آموزش سامانه‌های سازمانی" },
+                { name: "بازاریابی و محتوا", icon: "fa-bullhorn", color: "pink", desc: "بنرها، تیزرهای تبلیغاتی و محتوای شبکه‌های اجتماعی" },
+                { name: "گزارش تصویری", icon: "fa-camera-retro", color: "amber", desc: "عکس‌ها و فیلم‌های جلسات، رویدادها و گزارش‌های مدیریتی" },
+                { name: "عمومی", icon: "fa-folder", color: "emerald", desc: "سایر فایل‌های چندرسانه‌ای و آرشیو عمومی سازمان" }
+            ];
+
+            const grid = document.getElementById('foldersGrid');
+            grid.innerHTML = categories.map(cat => {
+                const items = mediaList.filter(m => m.category === cat.name);
+                const totalSize = items.reduce((acc, cur) => acc + (cur.size || 0), 0);
+                return `
+                    <div onclick="openFolderInGallery('${cat.name}')" class="cursor-pointer p-5 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-cyan-500 transition flex flex-col justify-between space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-xl">
+                                <i class="fa-solid ${cat.icon}"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                                ${toPersianDigits(items.length)} فایل
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900 dark:text-white">${cat.name}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${cat.desc}</p>
+                        </div>
+                        <div class="pt-3 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">حجم پوشه: ${formatBytes(totalSize)}</span>
+                            <span class="text-cyan-600 dark:text-cyan-400 font-bold">مشاهده محتوا ←</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openFolderInGallery(categoryName) {
+            switchTab('gallery');
+            document.getElementById('filterCategory').value = categoryName;
+            renderGallery();
+        }
+
+        function updateKPIsAndStorage() {
+            const totalCount = mediaList.length;
+            const images = mediaList.filter(m => m.type === 'image');
+            const videos = mediaList.filter(m => m.type === 'video');
+            const approvedCount = mediaList.filter(m => m.status === 'تأییدشده').length;
+
+            const imgBytes = images.reduce((acc, m) => acc + (m.size || 0), 0);
+            const vidBytes = videos.reduce((acc, m) => acc + (m.size || 0), 0);
+            const totalBytes = imgBytes + vidBytes;
+            const freeBytes = Math.max(0, STORAGE_QUOTA_BYTES - totalBytes);
+            const pct = Math.min(100, ((totalBytes / STORAGE_QUOTA_BYTES) * 100)).toFixed(1);
+
+            // Dashboard KPIs
+            document.getElementById('kpiTotalCount').textContent = toPersianDigits(totalCount);
+            document.getElementById('kpiApprovedBadge').textContent = `${toPersianDigits(approvedCount)} فایل تأییدشده`;
+            document.getElementById('kpiImageCount').textContent = toPersianDigits(images.length);
+            document.getElementById('kpiImageSize').textContent = `حجم تصاویر: ${formatBytes(imgBytes)}`;
+            document.getElementById('kpiVideoCount').textContent = toPersianDigits(videos.length);
+            document.getElementById('kpiVideoSize').textContent = `حجم ویدیوها: ${formatBytes(vidBytes)}`;
+            document.getElementById('kpiTotalSize').textContent = formatBytes(totalBytes);
+            document.getElementById('kpiQuotaFree').textContent = `${formatBytes(freeBytes)} فضای آزاد`;
+            document.getElementById('kpiQuotaPct').textContent = `${toPersianDigits(pct)}٪ پر شده`;
+
+            // Sidebar Storage & Badge
+            document.getElementById('sidebarTotalBadge').textContent = toPersianDigits(totalCount);
+            document.getElementById('sidebarStoragePercent').textContent = `${toPersianDigits(Math.round(pct))}٪`;
+            document.getElementById('sidebarStorageBar').style.width = `${pct}%`;
+            document.getElementById('sidebarUsedText').textContent = `${formatBytes(totalBytes)} مصرف‌شده`;
+
+            // Settings Storage Info
+            document.getElementById('setTotalFiles').textContent = `${toPersianDigits(totalCount)} فایل`;
+            document.getElementById('setImagesSize').textContent = formatBytes(imgBytes);
+            document.getElementById('setVideosSize').textContent = formatBytes(vidBytes);
+        }
+
+        function initCharts() {
+            Chart.defaults.font.family = "'Vazirmatn', sans-serif";
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(15, 23, 42, 0.08)';
+            const textColor = isDark ? '#94a3b8' : '#475569';
+
+            // 1. Monthly Upload & Size Trend Chart
+            const ctx1 = document.getElementById('monthlyTrendChart').getContext('2d');
+            charts.trend = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر (جاری)'],
+                    datasets: [
+                        {
+                            label: 'حجم آپلود ماهانه (MB)',
+                            data: [45, 62, 58, 84, 96, 72],
+                            backgroundColor: 'rgba(6, 182, 212, 0.75)',
+                            borderRadius: 8,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'تعداد فایل‌های بارگذاری‌شده',
+                            data: [12, 18, 15, 24, 29, 22],
+                            type: 'line',
+                            borderColor: '#6366f1',
+                            backgroundColor: '#6366f1',
+                            tension: 0.4,
+                            borderWidth: 2.5,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        y: { position: 'right', grid: { color: gridColor }, ticks: { color: textColor } },
+                        y1: { position: 'left', grid: { display: false }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+
+            // 2. Category Distribution Donut Chart
+            const ctx2 = document.getElementById('categoryDonutChart').getContext('2d');
+            charts.donut = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['پروژه‌های IT', 'مستندات آموزشی', 'بازاریابی و محتوا', 'گزارش تصویری', 'عمومی'],
+                    datasets: [{
+                        data: [1, 2, 1, 1, 1],
+                        backgroundColor: ['#06b6d4', '#6366f1', '#ec4899', '#f59e0b', '#10b981'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '66%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: textColor, padding: 14, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            updateDonutData();
+        }
+
+        function updateDonutData() {
+            if (!charts.donut) return;
+            const cats = ['پروژه‌های IT', 'مستندات آموزشی', 'بازاریابی و محتوا', 'گزارش تصویری', 'عمومی'];
+            const counts = cats.map(c => mediaList.filter(m => m.category === c).length);
+            charts.donut.data.datasets[0].data = counts;
+            charts.donut.update();
+
+            if (charts.trend) {
+                const totalMB = Math.round(mediaList.reduce((acc, m) => acc + (m.size || 0), 0) / (1024 * 1024));
+                charts.trend.data.datasets[0].data[5] = totalMB;
+                charts.trend.data.datasets[1].data[5] = mediaList.length;
+                charts.trend.update();
+            }
+        }
+
+        function updateChartsTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(15, 23, 42, 0.08)';
+            const textColor = isDark ? '#94a3b8' : '#475569';
+
+            if (charts.trend) {
+                charts.trend.options.scales.x.ticks.color = textColor;
+                charts.trend.options.scales.y.ticks.color = textColor;
+                charts.trend.options.scales.y.grid.color = gridColor;
+                charts.trend.options.scales.y1.ticks.color = textColor;
+                charts.trend.options.plugins.legend.labels.color = textColor;
+                charts.trend.update();
+            }
+            if (charts.donut) {
+                charts.donut.options.plugins.legend.labels.color = textColor;
+                charts.donut.update();
+            }
+        }
+
+        function refreshAllUI() {
+            updateKPIsAndStorage();
+            renderRecentMedia();
+            renderGallery();
+            renderFolders();
+            updateDonutData();
+        }
+
+        async function resetDemoData() {
+            await clearAllDB();
+            await seedInitialSamples();
+            refreshAllUI();
+            showToast('نمونه‌های پیش‌فرض با موفقیت بازنشانی شدند.', 'success');
+        }
+
+        async function clearAllUploadedMedia() {
+            await clearAllDB();
+            mediaList = [];
+            selectedIds.clear();
+            refreshAllUI();
+            showToast('تمام فایل‌های ذخیره‌شده از پایگاه داده مرورگر پاک شدند.', 'info');
+        }
+
+        // =========================================================================
+        // UTILITIES (FORMATTING & TOAST)
+        // =========================================================================
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds || isNaN(seconds)) return "00:05";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function toPersianDigits(num) {
+            const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            return num.toString().replace(/\d/g, x => persian[x]);
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const styles = {
+                success: 'bg-emerald-600 text-white',
+                warning: 'bg-amber-600 text-white',
+                info: 'bg-slate-800 text-white border border-cyan-500/40'
+            };
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 ${styles[type] || styles.info}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // =========================================================================
+        // APPLICATION BOOTSTRAP
+        // =========================================================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            setupDropzone();
+            try {
+                await initDB();
+                const stored = await loadAllFromDB();
+                if (stored.length > 0) {
+                    mediaList = stored;
+                } else {
+                    await seedInitialSamples();
+                }
+            } catch (err) {
+                console.warn("Fallback to memory mode:", err);
+                await seedInitialSamples();
+            }
+
+            initCharts();
+            refreshAllUI();
+        });
+    </script>
+</body>
+</html>
