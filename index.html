@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرکز هوشمند مدیریت فناوری اطلاعات سازمان | AI IT Command Center</title>
+    
+    <!-- Google Font: Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e32',
+                            925: '#0c1220',
+                            950: '#080c16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        /* Pulse animation for live indicators */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            80%, 100% { transform: scale(2.2); opacity: 0; }
+        }
+        .live-dot::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background-color: inherit;
+            animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        /* Glassmorphism subtle card effect */
+        .glass-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Print optimization */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 selection:bg-cyan-500 selection:text-white">
+
+    <!-- Mobile Overlay -->
+    <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Modal Container -->
+    <div id="detailModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+                <div class="flex items-center gap-3">
+                    <div id="modalIcon" class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="font-bold text-base sm:text-lg text-slate-900 dark:text-white">جزئیات تحلیل هوشمند</h3>
+                        <p id="modalSubtitle" class="text-xs text-slate-500 dark:text-slate-400">موتور هوش مصنوعی مرکزی</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="modalBody" class="p-6 max-h-[70vh] overflow-y-auto space-y-4 text-sm leading-relaxed">
+                <!-- Dynamic Modal Content -->
+            </div>
+            <div class="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex flex-wrap items-center justify-between gap-3">
+                <span class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                    تأیید شده توسط موتور تصمیم‌یار AI
+                </span>
+                <div class="flex items-center gap-2">
+                    <button id="modalActionBtn" onclick="executeModalAction()" class="px-4 py-2 rounded-xl bg-gradient-to-l from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-semibold shadow-lg shadow-cyan-500/20 transition">
+                        اجرای اقدام خودکار
+                    </button>
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition">
+                        بستن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="no-print fixed lg:sticky top-0 right-0 z-40 h-screen w-72 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 translate-x-full lg:translate-x-0 shadow-xl lg:shadow-none">
+            <!-- Brand Header -->
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25">
+                        <i class="fa-solid fa-microchip text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-sm leading-snug text-slate-900 dark:text-white">مرکز فرماندهی هوشمند IT</h1>
+                        <span class="text-[11px] font-medium text-cyan-600 dark:text-cyan-400 tracking-wide">AI IT Command Center</span>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- AI Core Status Pill -->
+            <div class="px-4 pt-4">
+                <div class="p-3 rounded-2xl bg-gradient-to-l from-cyan-500/10 via-blue-500/10 to-indigo-500/10 border border-cyan-500/20 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <div>
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-100">موتور هوش مصنوعی مرکزی</div>
+                            <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">فعال • تحلیل پیش‌بینانه در جریان</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">v4.2</span>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+                <div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">سامانه‌های یکپارچه</div>
+                
+                <button onclick="switchTab('overview')" data-tab="overview" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all bg-gradient-to-l from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/20">
+                    <i class="fa-solid fa-gauge-high w-5 text-center text-sm"></i>
+                    <div class="text-right flex-1">
+                        <div>داشبورد مرکزی و نمای کلی</div>
+                        <div class="text-[10px] opacity-80 font-normal">بخش ۶، ۷ و ۸ • فرماندهی کل</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('assistant')" data-tab="assistant" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-headset w-5 text-center text-sm text-cyan-500"></i>
+                    <div class="text-right flex-1">
+                        <div>دستیار هوشمند واحد IT</div>
+                        <div class="text-[10px] text-slate-400 font-normal">بخش ۱ • تیکتینگ و اتوماسیون</div>
+                    </div>
+                    <span class="px-1.5 py-0.5 text-[10px] rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold">۱۲ باز</span>
+                </button>
+
+                <button onclick="switchTab('monitoring')" data-tab="monitoring" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-server w-5 text-center text-sm text-indigo-500"></i>
+                    <div class="text-right flex-1">
+                        <div>پایش هوشمند شبکه و سرورها</div>
+                        <div class="text-[10px] text-slate-400 font-normal">بخش ۲ • مانیتورینگ و امنیت</div>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                </button>
+
+                <button onclick="switchTab('assets')" data-tab="assets" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-laptop-code w-5 text-center text-sm text-emerald-500"></i>
+                    <div class="text-right flex-1">
+                        <div>مدیریت دارایی‌ها و تجهیزات</div>
+                        <div class="text-[10px] text-slate-400 font-normal">بخش ۳ و ۴ • چرخه عمر و بودجه</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('knowledge')" data-tab="knowledge" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-book-atlas w-5 text-center text-sm text-purple-500"></i>
+                    <div class="text-right flex-1">
+                        <div>مدیریت دانش سازمانی</div>
+                        <div class="text-[10px] text-slate-400 font-normal">بخش ۵ • جستجوی معنایی AI</div>
+                    </div>
+                </button>
+
+                <div class="pt-3 pb-1 px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500">حاکمیت و معماری طرح</div>
+
+                <button onclick="switchTab('masterplan')" data-tab="masterplan" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all">
+                    <i class="fa-solid fa-sitemap w-5 text-center text-sm text-amber-500"></i>
+                    <div class="text-right flex-1">
+                        <div>نقشه راه و طرح جامع (۸ محور)</div>
+                        <div class="text-[10px] text-slate-400 font-normal">ساختار کامل ماژول‌ها و پیشرفت</div>
+                    </div>
+                </button>
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
+                <div class="bg-slate-100 dark:bg-slate-850 p-3 rounded-xl">
+                    <div class="flex items-center justify-between text-xs mb-1.5">
+                        <span class="text-slate-500 dark:text-slate-400">بلوغ هوشمندسازی IT</span>
+                        <span class="font-bold text-cyan-600 dark:text-cyan-400">۷۸٪</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-l from-cyan-500 to-blue-600 rounded-full" style="width: 78%"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>چشم‌انداز: واحد IT پیش‌بین</span>
+                    <button onclick="window.print()" class="hover:text-cyan-500 transition flex items-center gap-1" title="چاپ گزارش مدیریتی">
+                        <i class="fa-solid fa-print"></i>
+                        <span>چاپ گزارش</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Top Header Bar -->
+            <header class="no-print sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 glass-card border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3.5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 id="pageTitle" class="font-bold text-base sm:text-lg text-slate-900 dark:text-white">داشبورد مدیریتی مرکزی (AI IT Command Center)</h2>
+                                <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                                    واحد تحلیل‌محور و پیش‌بینی‌کننده
+                                </span>
+                            </div>
+                            <p id="pageSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">پایش یکپارچه زیرساخت، دارایی‌ها، تیکت‌های هوشمند و شاخص‌های تصمیم‌سازی کلان</p>
+                        </div>
+                    </div>
+
+                    <!-- Header Controls -->
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <!-- Live Simulation Toggle -->
+                        <button id="liveToggleBtn" onclick="toggleLiveSimulation()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                            <span id="liveIndicatorDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span id="liveToggleText">به‌روزرسانی زنده: فعال</span>
+                        </button>
+
+                        <!-- Period Selector -->
+                        <select id="timeframeSelect" onchange="handleTimeframeChange(this.value)" class="hidden md:block bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            <option value="realtime">لحظه‌ای (امروز)</option>
+                            <option value="weekly">گزارش هفتگی</option>
+                            <option value="monthly" selected>گزارش ماهانه</option>
+                            <option value="yearly">چشم‌انداز سالانه</option>
+                        </select>
+
+                        <!-- Theme Toggle -->
+                        <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 transition" title="تغییر تم روشن / تاریک">
+                            <i id="themeIcon" class="fa-solid fa-sun"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Dynamic Views Container -->
+            <main class="flex-1 p-4 sm:p-6 max-w-[1600px] w-full mx-auto space-y-6">
+
+                <!-- ===================================================================== -->
+                <!-- TAB 1: OVERVIEW & CENTRAL COMMAND CENTER (Sections 6, 7 & 8)          -->
+                <!-- ===================================================================== -->
+                <section id="tab-overview" class="tab-content space-y-6">
+                    
+                    <!-- Top 4 Executive KPI Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <!-- KPI 1 -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">پایداری و سلامت کل زیرساخت</p>
+                                    <h3 id="kpiHealth" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۹۹.۴۲٪</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> +۰.۳۸٪ نسبت به ماه قبل
+                                </span>
+                                <span class="text-slate-400">SLA هدف: ۹۹.۹٪</span>
+                            </div>
+                        </div>
+
+                        <!-- KPI 2 -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">حل خودکار تیکت‌ها توسط AI</p>
+                                    <h3 id="kpiAutoTickets" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۷۴.۸٪</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-robot"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span class="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-semibold">
+                                    <i class="fa-solid fa-bolt"></i> میانگین پاسخ: ۳.۴ دقیقه
+                                </span>
+                                <span class="text-slate-400">۱,۴۲۰ تیکت این ماه</span>
+                            </div>
+                        </div>
+
+                        <!-- KPI 3 -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">دارایی‌ها و تجهیزات تحت پایش</p>
+                                    <h3 id="kpiAssets" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۱,۲۸۴ <span class="text-sm font-normal text-slate-400">دستگاه</span></h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-network-wired"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> ۲۳ تجهیز نیازمند ارتقا
+                                </span>
+                                <span class="text-slate-400">شناسایی خودکار ۱۰۰٪</span>
+                            </div>
+                        </div>
+
+                        <!-- KPI 4 -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">کاهش هزینه‌های عملیاتی (پیش‌بینی)</p>
+                                    <h3 id="kpiSavings" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">۲۸.۵٪</h3>
+                                </div>
+                                <div class="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-sack-dollar"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs">
+                                <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    <i class="fa-solid fa-chart-line"></i> ۴.۲ میلیارد تومان صرفه‌جویی
+                                </span>
+                                <span class="text-slate-400">بهینه‌سازی TCO</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Row: Live Telemetry Chart + AI Predictive Alerts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Live Telemetry & AI Forecasting Chart -->
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                <div>
+                                    <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-wave-square text-cyan-500"></i>
+                                        پایش زنده بار پردازشی سرورها، ترافیک شبکه و نرخ اتوماسیون
+                                    </h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">تحلیل لحظه‌ای موتور هوش مصنوعی مرکزی (بخش ۶.۲)</p>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> بار سرورها (%)</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> ترافیک شبکه (%)</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> حل خودکار AI (%)</span>
+                                </div>
+                            </div>
+                            <div class="relative flex-1 min-h-[270px] w-full">
+                                <canvas id="centralTelemetryChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- AI Predictive Alerts & Automated Actions Feed -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-brain text-amber-500"></i>
+                                        هشدارهای هوشمند و پیش‌بینی AI
+                                    </h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">تشخیص الگوهای غیرعادی و اقدامات اصلاحی</p>
+                                </div>
+                                <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-500 text-[11px] font-bold">۳ مورد حساس</span>
+                            </div>
+
+                            <div class="space-y-3 flex-1 overflow-y-auto max-h-[290px] pl-1" id="predictiveAlertsList">
+                                <!-- Alert 1 -->
+                                <div class="p-3.5 rounded-xl bg-rose-500/5 border border-rose-500/20 hover:border-rose-500/40 transition cursor-pointer" onclick="openAlertModal(0)">
+                                    <div class="flex items-center justify-between text-xs mb-1">
+                                        <span class="font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-exclamation"></i> پیش‌بینی خرابی دیسک SAN-02
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">احتمال: ۸۹٪</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">افزایش خطاهای I/O در اسلات ۴؛ احتمال خرابی طی ۷۲ ساعت آینده.</p>
+                                    <div class="mt-2 flex items-center justify-between text-[11px]">
+                                        <span class="text-cyan-600 dark:text-cyan-400 font-semibold">پیشنهاد AI: انتقال خودکار LUN به Raid-Spare</span>
+                                        <i class="fa-solid fa-chevron-left text-slate-400"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Alert 2 -->
+                                <div class="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 hover:border-amber-500/40 transition cursor-pointer" onclick="openAlertModal(1)">
+                                    <div class="flex items-center justify-between text-xs mb-1">
+                                        <span class="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> گلوگاه پهنای باند سوئیچ Core-SW1
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">بازه ۱۰ تا ۱۲</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">مصرف ۸۶٪ لینک آپ‌لینک ساختمان مرکزی در ساعات اوج کاری.</p>
+                                    <div class="mt-2 flex items-center justify-between text-[11px]">
+                                        <span class="text-cyan-600 dark:text-cyan-400 font-semibold">پیشنهاد AI: فعال‌سازی QoS و تجمیع لینک LACP</span>
+                                        <i class="fa-solid fa-chevron-left text-slate-400"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Alert 3 -->
+                                <div class="p-3.5 rounded-xl bg-cyan-500/5 border border-cyan-500/20 hover:border-cyan-500/40 transition cursor-pointer" onclick="openAlertModal(2)">
+                                    <div class="flex items-center justify-between text-xs mb-1">
+                                        <span class="font-bold text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i> الگوی پرتکرار تیکت‌های VPN
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">اتوماسیون آماده</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">۴۷ درخواست انقضای گواهی VPN در واحد فروش شناسایی شد.</p>
+                                    <div class="mt-2 flex items-center justify-between text-[11px]">
+                                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">اقدام خودکار: تمدید گروهی و ارسال راهنما</span>
+                                        <i class="fa-solid fa-chevron-left text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 8: Integrated Architecture Pillars (6 Core Modules) -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-cubes-stacked text-cyan-500"></i>
+                                    معماری یکپارچه مرکز هوشمند فناوری اطلاعات (بخش ۸ - خروجی نهایی پروژه)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">برای ورود به داشبورد تخصصی هر سامانه روی کارت مربوطه کلیک کنید</p>
+                            </div>
+                            <span class="text-xs font-semibold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full">۶ سامانه متصل به هسته AI</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+                            <div onclick="switchTab('assistant')" class="group cursor-pointer p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-cyan-500 transition">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center group-hover:scale-110 transition"><i class="fa-solid fa-headset"></i></span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500">۸۵٪ فعال</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white">۱. دستیار هوشمند IT</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">AI IT Assistant</p>
+                            </div>
+
+                            <div onclick="switchTab('monitoring')" class="group cursor-pointer p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 transition">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition"><i class="fa-solid fa-server"></i></span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500">۹۲٪ فعال</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white">۲. پایش شبکه و سرورها</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">AI Network & Server</p>
+                            </div>
+
+                            <div onclick="switchTab('assets')" class="group cursor-pointer p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition"><i class="fa-solid fa-barcode"></i></span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500">۸۰٪ فعال</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white">۳. هوشمندی دارایی‌ها</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">IT Asset Intelligence</p>
+                            </div>
+
+                            <div onclick="switchTab('assets')" class="group cursor-pointer p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-teal-500 transition">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="w-9 h-9 rounded-xl bg-teal-500/15 text-teal-500 flex items-center justify-center group-hover:scale-110 transition"><i class="fa-solid fa-microchip"></i></span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500">۷۲٪ فعال</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white">۴. مدیریت هوشمند تجهیزات</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Smart Equipment Mgmt</p>
+                            </div>
+
+                            <div onclick="switchTab('knowledge')" class="group cursor-pointer p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-purple-500 transition">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center group-hover:scale-110 transition"><i class="fa-solid fa-book-open-reader"></i></span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500">۶۸٪ فعال</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white">۵. مدیریت دانش سازمانی</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">AI Knowledge Mgmt</p>
+                            </div>
+
+                            <div onclick="switchTab('masterplan')" class="group cursor-pointer p-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-600/10 border border-cyan-500/30 hover:border-cyan-400 transition">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="w-9 h-9 rounded-xl bg-cyan-500 text-white flex items-center justify-center group-hover:scale-110 transition"><i class="fa-solid fa-gauge"></i></span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-600 dark:text-cyan-300">هسته مرکزی</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white">۶. داشبورد یکپارچه AI</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Central AI Dashboard</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 7: Strategic Macro Goals Tracker -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-bullseye text-rose-500"></i>
+                                    پایش تحقق اهداف کلان پروژه هوشمندسازی (بخش ۷ طرح جامع)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">اندازه‌گیری کمی حرکت واحد IT به سمت مدیریت داده‌محور، پیش‌بین و تصمیم‌ساز</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">میانگین تحقق اهداف: ۷۹.۴٪</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3" id="macroGoalsGrid">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- TAB 2: AI IT ASSISTANT (Section 1)                                    -->
+                <!-- ===================================================================== -->
+                <section id="tab-assistant" class="tab-content hidden space-y-6">
+                    <!-- Assistant Top KPIs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">کل درخواست‌های ثبت‌شده (ماه)</span>
+                            <div class="flex items-end justify-between mt-2">
+                                <span class="text-2xl font-extrabold text-slate-900 dark:text-white">۱,۴۲۰</span>
+                                <span class="text-xs font-semibold text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded-lg">دسته‌بندی خودکار: ۹۸٪</span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">پاسخگویی و حل خودکار توسط AI</span>
+                            <div class="flex items-end justify-between mt-2">
+                                <span class="text-2xl font-extrabold text-emerald-500">۱,۰۶۲</span>
+                                <span class="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-lg">۷۴.۸٪ بدون دخالت انسان</span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">میانگین زمان رفع مشکل (MTTR)</span>
+                            <div class="flex items-end justify-between mt-2">
+                                <span class="text-2xl font-extrabold text-slate-900 dark:text-white">۱۴ <span class="text-sm font-normal">دقیقه</span></span>
+                                <span class="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-lg">کاهش ۶۸٪ نسبت به قبل</span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">رضایت کاربران از پشتیبانی (CSAT)</span>
+                            <div class="flex items-end justify-between mt-2">
+                                <span class="text-2xl font-extrabold text-amber-500">۴.۸ <span class="text-sm font-normal text-slate-400">/ ۵</span></span>
+                                <span class="text-xs font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg">۹۶٪ رضایت مثبت</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive AI Ticket Simulator & Triage -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- New Ticket AI Classifier Simulator -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-500"></i>
+                                    شبیه‌ساز ثبت و دسته‌بندی هوشمند تیکت (بخش ۱.۱ و ۱.۲)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">شرح مشکل کاربر را بنویسید تا AI دسته‌بندی، اولویت، راهکار و کارشناس را تعیین کند:</p>
+                            </div>
+                            <textarea id="newTicketInput" rows="3" class="w-full rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 p-3 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="مثلاً: اتصال VPN من قطع شده و خطای گواهی امنیتی می‌دهد یا سیستم حسابداری بسیار کند است..."></textarea>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button onclick="fillSampleTicket('اتصال VPN قطع شده و خطای احراز هویت می‌دهد')" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-cyan-500/10 hover:text-cyan-500 transition">نمونه: خطای VPN</button>
+                                <button onclick="fillSampleTicket('هارد لپ‌تاپ صدای غیرعادی می‌دهد و ویندوز بلو اسکرین می‌شود')" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-cyan-500/10 hover:text-cyan-500 transition">نمونه: خرابی سخت‌افزار</button>
+                                <button onclick="fillSampleTicket('نیاز به دسترسی به پوشه مالی و نصب نرم‌افزار ERP دارم')" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-cyan-500/10 hover:text-cyan-500 transition">نمونه: دسترسی نرم‌افزار</button>
+                            </div>
+                            <button onclick="simulateNewTicket()" class="w-full py-2.5 rounded-xl bg-gradient-to-l from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-robot"></i>
+                                تحلیل، اولویت‌بندی و ارجاع هوشمند
+                            </button>
+                        </div>
+
+                        <!-- Live Ticket Queue Table -->
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white">صف تیکت‌های هوشمند و تشخیص اولیه AI</h3>
+                                <div class="flex items-center gap-2">
+                                    <select id="ticketFilter" onchange="renderTicketsTable()" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs">
+                                        <option value="all">همه وضعیت‌ها</option>
+                                        <option value="auto">حل‌شده توسط AI</option>
+                                        <option value="assigned">ارجاع به کارشناس</option>
+                                        <option value="critical">اولویت بحرانی</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-right border-collapse text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400">
+                                            <th class="py-2.5 px-3">شناسه</th>
+                                            <th class="py-2.5 px-3">شرح درخواست کاربر</th>
+                                            <th class="py-2.5 px-3">دسته‌بندی AI</th>
+                                            <th class="py-2.5 px-3">اولویت</th>
+                                            <th class="py-2.5 px-3">ارجاع / وضعیت</th>
+                                            <th class="py-2.5 px-3">راهکار AI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ticketsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts: Recurring Issues & Specialist Performance (1.3 & 1.4) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-1">تحلیل درخواست‌های پرتکرار و راهکارهای پیشگیرانه (بخش ۱.۳)</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">شناسایی ریشه‌ای گلوگاه‌های پشتیبانی کاربران</p>
+                            <div class="h-64">
+                                <canvas id="recurringTicketsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-1">تحلیل عملکرد کارشناسان IT و دستیار هوشمند (بخش ۱.۳ و ۱.۴)</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">مقایسه تعداد تیکت‌های حل‌شده و نرخ رضایت</p>
+                            <div class="h-64">
+                                <canvas id="specialistPerfChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- TAB 3: AI NETWORK & SERVER MONITORING (Section 2)                     -->
+                <!-- ===================================================================== -->
+                <section id="tab-monitoring" class="tab-content hidden space-y-6">
+                    <!-- Infrastructure Health Summary Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>وضعیت سوئیچ‌ها و روترها (۲.۱)</span>
+                                <i class="fa-solid fa-network-wired text-emerald-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2 text-slate-900 dark:text-white">۴۸ / ۴۸ <span class="text-xs font-normal text-emerald-500">آنلاین</span></div>
+                            <p class="text-[11px] text-slate-400 mt-1">تأخیر میانگین شبکه داخلی: ۱.۲ms</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>پهنای باند و ترافیک شبکه (۲.۱)</span>
+                                <i class="fa-solid fa-gauge-high text-cyan-500"></i>
+                            </div>
+                            <div id="monBandwidth" class="text-2xl font-extrabold mt-2 text-slate-900 dark:text-white">۶.۴ <span class="text-xs font-normal text-slate-400">Gbps / 10Gbps</span></div>
+                            <p class="text-[11px] text-cyan-500 mt-1">بدون قطعی ارتباطات در ۳۰ روز اخیر</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>سلامت سرورها و سرویس‌ها (۲.۲)</span>
+                                <i class="fa-solid fa-server text-indigo-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2 text-slate-900 dark:text-white">۳۲ / ۳۳ <span class="text-xs font-normal text-amber-500">۱ هشدار</span></div>
+                            <p class="text-[11px] text-slate-400 mt-1">میانگین CPU کل کلاستر: ۴۴٪</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>امنیت فایروال و تحلیل لاگ‌ها (۲.۴)</span>
+                                <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2 text-emerald-500">ایمن</div>
+                            <p class="text-[11px] text-slate-400 mt-1">۱۴۲ تلاش مشکوک مسدود شد (امروز)</p>
+                        </div>
+                    </div>
+
+                    <!-- Server Resource Gauges (CPU, RAM, Storage) -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">پایش هوشمند منابع سرورهای حیاتی (CPU • RAM • Storage • سلامت سرویس)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">بخش ۲.۲ و ۲.۳ • تشخیص روند مصرف منابع و پیش‌بینی خرابی</p>
+                            </div>
+                            <button onclick="runAiDiagnostics()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center gap-2">
+                                <i class="fa-solid fa-stethoscope"></i>
+                                اجرای اسکن عمیق AI
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="serversGrid">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Security Logs & Anomaly Detection (2.3 & 2.4) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-1">روند مصرف منابع و پیش‌بینی گلوگاه‌های شبکه (بخش ۲.۳)</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">مقایسه مصرف واقعی با خط پیش‌بینی هوش مصنوعی</p>
+                            <div class="h-64">
+                                <canvas id="networkForecastChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">تحلیل هوشمند لاگ‌های زیرساخت و امنیت (بخش ۲.۴)</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">پایش فایروال، دسترس‌پذیری سرویس‌ها و فعالیت‌های مشکوک</p>
+                                </div>
+                                <span class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 font-semibold">فایروال: فعال</span>
+                            </div>
+                            <div class="space-y-2.5 max-h-64 overflow-y-auto text-xs" id="securityLogsList">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- TAB 4: IT ASSET & SMART EQUIPMENT INTELLIGENCE (Sections 3 & 4)       -->
+                <!-- ===================================================================== -->
+                <section id="tab-assets" class="tab-content hidden space-y-6">
+                    <!-- Asset Breakdown Cards -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-500">کامپیوتر و لپ‌تاپ (۴.۱)</span>
+                                <i class="fa-solid fa-laptop text-cyan-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2">۹۴۰ <span class="text-xs font-normal text-slate-400">دستگاه</span></div>
+                            <div class="text-[11px] text-amber-500 mt-1">۱۸ مورد فرسوده (نیازمند جایگزینی)</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-500">سرورها و ذخیره‌سازی (۴.۱)</span>
+                                <i class="fa-solid fa-hard-drive text-indigo-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2">۶۴ <span class="text-xs font-normal text-slate-400">واحد</span></div>
+                            <div class="text-[11px] text-emerald-500 mt-1">میانگین عمر مفید باقی‌مانده: ۳.۴ سال</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-500">تجهیزات شبکه و امنیت (۴.۱)</span>
+                                <i class="fa-solid fa-router text-emerald-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2">۱۸۵ <span class="text-xs font-normal text-slate-400">تجهیز</span></div>
+                            <div class="text-[11px] text-cyan-500 mt-1">۵ مورد پیشنهاد ارتقای ماژول</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-500">تجهیزات بلااستفاده شناسایی‌شده</span>
+                                <i class="fa-solid fa-box-open text-amber-500"></i>
+                            </div>
+                            <div class="text-2xl font-extrabold mt-2 text-amber-500">۹۵ <span class="text-xs font-normal text-slate-400">مورد</span></div>
+                            <div class="text-[11px] text-emerald-500 mt-1">ارزش بازیافتی: ۱.۱ میلیارد تومان</div>
+                        </div>
+                    </div>
+
+                    <!-- CapEx Budget Forecast & Lifecycle Analysis (4.2, 4.3, 4.4, 4.5) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                                <div>
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">پیش‌بینی بودجه خرید تجهیزات و تحلیل هزینه مالکیت (TCO) - بخش ۴.۴ و ۴.۵</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">مقایسه هزینه نگهداری تجهیزات فرسوده در برابر سرمایه‌گذاری جایگزینی (میلیارد تومان)</p>
+                                </div>
+                            </div>
+                            <div class="h-64">
+                                <canvas id="budgetForecastChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Smart Upgrade & Replacement Recommendations (4.3 & 4.5) -->
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                                    <i class="fa-solid fa-scale-balanced text-cyan-500"></i>
+                                    تصمیم‌ساز هوشمند ارتقا و جایگزینی (بخش ۴.۳)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">تحلیل هزینه تعمیر در برابر تعویض و زمان بهینه خرید</p>
+                                <div class="space-y-3 text-xs">
+                                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
+                                        <div class="flex justify-between font-bold text-slate-800 dark:text-slate-100">
+                                            <span>۱۸ دستگاه لپ‌تاپ سری G5 (واحد مالی)</span>
+                                            <span class="text-rose-500">اولویت فوری</span>
+                                        </div>
+                                        <p class="text-slate-500 mt-1">عمر مفید: ۵.۴ سال • هزینه تعمیر سالانه از ۴۵٪ قیمت نو فراتر رفته است.</p>
+                                        <div class="mt-2 text-emerald-600 dark:text-emerald-400 font-semibold">پیشنهاد AI: جایگزینی در سه‌ماهه اول (صرفه‌جویی ۱۸٪ TCO)</div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
+                                        <div class="flex justify-between font-bold text-slate-800 dark:text-slate-100">
+                                            <span>سرور مجازی‌ساز ESXi-Node04</span>
+                                            <span class="text-amber-500">پیشنهاد ارتقا</span>
+                                        </div>
+                                        <p class="text-slate-500 mt-1">سلامت پردازنده ۹۴٪ • تنها ارتقای RAM از ۱۲۸ به ۲۵۶ گیگابایت نیاز است.</p>
+                                        <div class="mt-2 text-cyan-600 dark:text-cyan-400 font-semibold">پیشنهاد AI: ارتقای رم به جای خرید سرور جدید</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="showToast('گزارش جامع تحلیل TCO و برنامه خرید سالانه آماده دریافت شد.', 'success')" class="mt-4 w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-cyan-600 hover:text-white text-xs font-bold transition">
+                                تولید گزارش برنامه خرید کوتاه‌مدت و بلندمدت
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Searchable Asset Inventory Table (3.1, 3.2, 3.4) -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-white">بانک هوشمند دارایی‌های IT و چرخه عمر (بخش ۳.۱ و ۳.۲)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">شناسایی خودکار IP، MAC، شماره سریال، مالکیت، محل استقرار و استهلاک</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <input id="assetSearchInput" onkeyup="renderAssetsTable()" type="text" placeholder="جستجوی نام، IP، سریال یا واحد..." class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                <select id="assetTypeFilter" onchange="renderAssetsTable()" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs">
+                                    <option value="all">همه تجهیزات</option>
+                                    <option value="سرور">سرورها</option>
+                                    <option value="شبکه">تجهیزات شبکه</option>
+                                    <option value="لپ‌تاپ">لپ‌تاپ و ایستگاه کاری</option>
+                                    <option value="ذخیره‌سازی">ذخیره‌سازی</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400">
+                                        <th class="py-2.5 px-3">کد دارایی / سریال</th>
+                                        <th class="py-2.5 px-3">نام و نوع تجهیز</th>
+                                        <th class="py-2.5 px-3">آدرس IP / MAC</th>
+                                        <th class="py-2.5 px-3">مالک / محل استقرار</th>
+                                        <th class="py-2.5 px-3">عمر عملیاتی / استهلاک</th>
+                                        <th class="py-2.5 px-3">وضعیت و پیشنهاد AI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assetsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- TAB 5: AI KNOWLEDGE MANAGEMENT SYSTEM (Section 5)                     -->
+                <!-- ===================================================================== -->
+                <section id="tab-knowledge" class="tab-content hidden space-y-6">
+                    <!-- Semantic Search Hero Box (5.2 & 5.4) -->
+                    <div class="bg-gradient-to-l from-indigo-950 via-slate-900 to-cyan-950 text-white rounded-2xl p-6 sm:p-8 border border-cyan-500/30 shadow-xl">
+                        <div class="max-w-3xl mx-auto text-center space-y-3">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-semibold">
+                                <i class="fa-solid fa-sparkles"></i> دستیار هوشمند دانش فنی (بخش ۵.۲ و ۵.۴)
+                            </span>
+                            <h3 class="text-xl sm:text-2xl font-extrabold">جستجوی معنایی در بانک دانش، مستندات شبکه و فایل‌های فنی</h3>
+                            <p class="text-xs sm:text-sm text-slate-300">سؤال تخصصی خود را بپرسید تا موتور AI پاسخ را از میان مستندات PDF، Word، تنظیمات سرورها و تجربیات کارشناسان استخراج و خلاصه‌سازی کند.</p>
+                            
+                            <div class="pt-2 flex flex-col sm:flex-row gap-2">
+                                <input id="kbSearchInput" onkeyup="if(event.key==='Enter') searchKnowledgeBase()" type="text" class="flex-1 rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="جستجو در دستورالعمل‌ها، تنظیمات VLAN، بازیابی بکاپ، عیب‌یابی سرور...">
+                                <button onclick="searchKnowledgeBase()" class="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    جستجوی هوشمند
+                                </button>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-center gap-2 pt-2 text-[11px]">
+                                <span class="text-slate-400">پیشنهاد جستجو:</span>
+                                <button onclick="quickKbSearch('تنظیمات فایروال و VLAN')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition">تنظیمات فایروال و VLAN</button>
+                                <button onclick="quickKbSearch('بازیابی اضطراری دیتابیس')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition">بازیابی اضطراری دیتابیس</button>
+                                <button onclick="quickKbSearch('پروتکل تحویل تجهیزات')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition">پروتکل تحویل تجهیزات</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Base Health Metrics (5.1 & 5.5) -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500">کل مستندات بانک دانش (۵.۱)</span>
+                            <div class="text-2xl font-extrabold mt-2">۴۸۶ <span class="text-xs font-normal text-slate-400">سند فنی</span></div>
+                            <span class="text-[11px] text-emerald-500">پوشش ۹۲٪ فرآیندهای IT</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500">نرخ استفاده و بازیابی موفق (۵.۵)</span>
+                            <div class="text-2xl font-extrabold mt-2 text-cyan-500">۸۹.۴٪</div>
+                            <span class="text-[11px] text-slate-400">۱,۸۴۰ جستجوی موفق در ماه</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500">کنترل نسخه و به‌روزرسانی (۵.۵)</span>
+                            <div class="text-2xl font-extrabold mt-2 text-amber-500">۱۴ <span class="text-xs font-normal text-slate-400">سند</span></div>
+                            <span class="text-[11px] text-amber-500">نیازمند بازبینی دوره جدید</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                            <span class="text-xs text-slate-500">اسناد تکراری ادغام‌شده توسط AI</span>
+                            <div class="text-2xl font-extrabold mt-2 text-purple-500">۳۷ <span class="text-xs font-normal text-slate-400">مورد</span></div>
+                            <span class="text-[11px] text-emerald-500">یکپارچه‌سازی خودکار نسخه</span>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Documents & AI Summary Results -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="kbDocumentsGrid">
+                        <!-- Populated via JS -->
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- TAB 6: MASTER PLAN EXPLORER (All Sections 1 to 8)                     -->
+                <!-- ===================================================================== -->
+                <section id="tab-masterplan" class="tab-content hidden space-y-6">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                        <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+                            <div>
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-sitemap text-cyan-500"></i>
+                                    ساختار جامع طرح هوشمندسازی واحد IT سازمان (۸ محور و تمامی زیرماژول‌ها)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">مرور تعاملی تمام بندهای سند چشم‌انداز، تغییر وضعیت اجرایی ماژول‌ها و جستجو در قابلیت‌ها</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <input id="planSearchInput" onkeyup="renderMasterPlan()" type="text" placeholder="جستجو در بندهای طرح جامع..." class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                <button onclick="expandAllPlan(true)" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold">باز کردن همه</button>
+                                <button onclick="expandAllPlan(false)" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold">بستن همه</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4" id="masterPlanContainer">
+                            <!-- Populated via JS with all 8 sections and exact bullet points -->
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // DATA STORE (Reflecting 100% of User's Comprehensive IT Master Plan)
+        // =========================================================================
+
+        const macroGoalsData = [
+            { title: "هوشمندسازی فرآیندهای واحد IT", progress: 84, icon: "fa-robot", color: "cyan" },
+            { title: "کاهش هزینه‌های عملیاتی", progress: 76, icon: "fa-coins", color: "emerald" },
+            { title: "افزایش بهره‌وری کارشناسان", progress: 88, icon: "fa-user-gear", color: "blue" },
+            { title: "افزایش پایداری زیرساخت", progress: 94, icon: "fa-server", color: "indigo" },
+            { title: "کاهش زمان رفع مشکلات", progress: 86, icon: "fa-stopwatch", color: "teal" },
+            { title: "مدیریت بهینه دارایی‌ها", progress: 80, icon: "fa-laptop-file", color: "purple" },
+            { title: "پیش‌بینی نیازهای سخت‌افزاری", progress: 72, icon: "fa-chart-line", color: "amber" },
+            { title: "ایجاد دانش سازمانی متمرکز", progress: 68, icon: "fa-book-bookmark", color: "pink" },
+            { title: "حرکت به سمت مدیریت داده‌محور", progress: 79, icon: "fa-database", color: "sky" },
+            { title: "تبدیل IT به واحد پیش‌بین و تصمیم‌ساز", progress: 77, icon: "fa-brain", color: "rose" }
+        ];
+
+        const predictiveAlertsData = [
+            {
+                title: "پیش‌بینی خرابی دیسک ذخیره‌سازی SAN-02",
+                subtitle: "بخش ۲.۳ • تشخیص و پیش‌بینی اختلالات",
+                severity: "بحرانی (احتمال خرابی ۸۹٪)",
+                analysis: "موتور یادگیری ماشین روند افزایش خطاهای خواندن/نوشتن (SMART I/O Latency) را در دیسک شماره ۴ استوریج مرکزی شناسایی کرده است. بر اساس الگوی استهلاک، احتمال از دسترس خارج شدن دیسک طی ۷۲ ساعت آینده ۸۹٪ برآورد می‌شود.",
+                recommendation: "انتقال خودکار LUNهای حساس به دیسک جایگزین (Hot-Spare) و ثبت سفارش جایگزینی قطعه در سامانه دارایی‌ها.",
+                actionLabel: "اجرای انتقال خودکار LUN و ثبت تیکت سخت‌افزاری"
+            },
+            {
+                title: "تشخیص گلوگاه پهنای باند در سوئیچ Core-SW1",
+                subtitle: "بخش ۲.۱ و ۲.۳ • پایش هوشمند شبکه",
+                severity: "هشدار متوسط (مصرف ۸۶٪)",
+                analysis: "تحلیل ترافیک شبکه نشان می‌دهد روزانه بین ساعات ۱۰:۰۰ تا ۱۲:۰۰ ترافیک بین ساختمان مرکزی و سرورهای بکاپ به ۸۶٪ ظرفیت لینک ۱۰ گیگابیتی می‌رسد که موجب افزایش تأخیر سرویس ERP می‌شود.",
+                recommendation: "اعمال سیاست اولویت‌بندی ترافیک (QoS) برای سرویس‌های حیاتی و زمان‌بندی ترافیک بکاپ به ساعات غیرکاری.",
+                actionLabel: "اعمال سیاست هوشمند QoS روی سوئیچ Core"
+            },
+            {
+                title: "الگوی پرتکرار تیکت‌های انقضای گواهی VPN",
+                subtitle: "بخش ۱.۳ • هوش مصنوعی و اتوماسیون",
+                severity: "فرصت اتوماسیون",
+                analysis: "طی ۲۴ ساعت گذشته ۴۷ درخواست مشابه از واحد فروش و بازرگانی ثبت شده است. ریشه مشکل انقضای گواهی امنیتی کلاینت‌های VPN است.",
+                recommendation: "اجرای اسکریپت تمدید خودکار گواهی از طریق Active Directory و ارسال پیام راهنما به کاربران.",
+                actionLabel: "تمدید خودکار گواهی‌ها و بستن تیکت‌های مرتبط"
+            }
+        ];
+
+        let ticketsData = [
+            { id: "TK-4092", desc: "قطعی اتصال VPN و خطای گواهی امنیتی", category: "شبکه و امنیت", priority: "بالا", status: "auto", assignee: "دستیار هوشمند AI", solution: "تمدید خودکار گواهی SSL و ارسال پروفایل جدید" },
+            { id: "TK-4091", desc: "کندی شدید سیستم حسابداری و نرم‌افزار ERP", category: "نرم‌افزار سازمانی", priority: "بحرانی", status: "assigned", assignee: "مهندس رضایی (تیم دیتابیس)", solution: "تشخیص قفل‌شدگی کوئری SQL؛ ارجاع با لاگ کامل" },
+            { id: "TK-4090", desc: "فراموشی رمز عبور ایمیل سازمانی و قفل شدن اکانت", category: "دسترسی و هویت", priority: "متوسط", status: "auto", assignee: "دستیار هوشمند AI", solution: "احراز هویت دو مرحله‌ای و بازنشانی خودکار رمز" },
+            { id: "TK-4089", desc: "ارور دمای بالای پردازنده در ایستگاه کاری طراحی", category: "سخت‌افزار", priority: "بالا", status: "assigned", assignee: "مهندس کریمی (پشتیبانی فنی)", solution: "ثبت هشدار استهلاک فن CPU و رزرو قطعه جایگزین" },
+            { id: "TK-4088", desc: "نصب پرینتر شبکه طبقه سوم واحد اداری", category: "تجهیزات جانبی", priority: "کم", status: "auto", assignee: "دستیار هوشمند AI", solution: "نصب خودکار درایور از طریق GPO و ارسال راهنما" }
+        ];
+
+        const serversData = [
+            { name: "SRV-ERP-PROD01", role: "سرور اصلی نرم‌افزار جامع (ERP)", cpu: 62, ram: 74, storage: 58, status: "سالم", prediction: "پایدار تا ۶ ماه آینده" },
+            { name: "SRV-DB-CLUSTER02", role: "پایگاه داده مرکزی SQL", cpu: 78, ram: 85, storage: 71, status: "تحت پایش", prediction: "پیشنهاد افزایش ۳۲GB RAM" },
+            { name: "SAN-STORAGE-02", role: "سامانه ذخیره‌سازی مرکزی", cpu: 41, ram: 52, storage: 89, status: "هشدار پیش‌بینانه", prediction: "احتمال خرابی دیسک اسلات ۴" },
+            { name: "FW-PERIMETER-HA", role: "فایروال و امنیت لبه شبکه", cpu: 34, ram: 46, storage: 29, status: "ایمن", prediction: "مسدودسازی ۱۴۲ حمله امروز" },
+            { name: "CORE-SW-01", role: "سوئیچ هسته مرکز داده", cpu: 48, ram: 39, storage: 22, status: "سالم", prediction: "پهنای باند ۶۴٪ در اوج مصرف" },
+            { name: "SRV-AI-ENGINE", role: "موتور پردازش هوش مصنوعی IT", cpu: 55, ram: 68, storage: 44, status: "فعال", prediction: "تحلیل ۱۲,۴۰۰ رویداد در دقیقه" }
+        ];
+
+        const securityLogsData = [
+            { time: "۱۰:۴۲", type: "danger", title: "شناسایی اسکن پورت مشکوک از IP خارجی 185.220.x.x", action: "مسدودسازی خودکار توسط فایروال" },
+            { time: "۱۰:۱۵", type: "warning", title: "تلاش ناموفق ورود متعدد به پنل مدیریت وب‌سرور", action: "اعمال محدودیت نرخ (Rate Limit) و ثبت رخداد" },
+            { time: "۰۹:۵۰", type: "success", title: "بررسی دسترس‌پذیری ۵۴ سرویس حیاتی سازمان", action: "۱۰۰٪ سرویس‌ها در دسترس (Uptime: 99.98%)" },
+            { time: "۰۹:۱۲", type: "info", title: "تحلیل هوشمند ۲.۴ میلیون خط لاگ زیرساخت", action: "عدم مشاهده ناهنجاری امنیتی بحرانی" }
+        ];
+
+        const assetsData = [
+            { code: "AST-1001", serial: "SN-DELL-99482", name: "سرور PowerEdge R750", type: "سرور", ip: "10.10.1.12", mac: "00:1B:44:11:3A:B7", owner: "مرکز داده - رک A2", age: "۲.۱ سال (سالم)", aiNote: "عملکرد بهینه • بدون نیاز به ارتقا", statusColor: "emerald" },
+            { code: "AST-1045", serial: "SN-CISCO-44109", name: "سوئیچ Cisco Catalyst 9300", type: "شبکه", ip: "10.10.0.2", mac: "00:1A:2B:3C:4D:5E", owner: "اتاق سرور مرکزی", age: "۳.۰ سال (سالم)", aiNote: "پیشنهاد به‌روزرسانی Firmware", statusColor: "cyan" },
+            { code: "AST-2184", serial: "SN-HP-77310", name: "لپ‌تاپ HP ProBook 450 G5", type: "لپ‌تاپ", ip: "10.20.14.88", mac: "3C:52:82:91:04:AA", owner: "واحد مالی - خانم احمدی", age: "۵.۴ سال (فرسوده)", aiNote: "اولویت جایگزینی (هزینه تعمیر بالا)", statusColor: "rose" },
+            { code: "AST-3012", serial: "SN-HPE-88219", name: "استوریج HPE MSA 2060", type: "ذخیره‌سازی", ip: "10.10.2.5", mac: "70:10:6F:42:9B:11", owner: "مرکز داده - رک B1", age: "۳.۸ سال (هشدار)", aiNote: "تعویض پیشگیرانه دیسک اسلات ۴", statusColor: "amber" },
+            { code: "AST-2490", serial: "SN-LEN-55120", name: "لپ‌تاپ Lenovo ThinkPad T14", type: "لپ‌تاپ", ip: "10.20.18.41", mac: "8C:16:45:77:21:CC", owner: "واحد برنامه‌ریزی - آقای نوری", age: "۱.۲ سال (نو)", aiNote: "بهره‌برداری مناسب", statusColor: "emerald" },
+            { code: "AST-2019", serial: "SN-DELL-33104", name: "کامپیوتر رومیزی OptiPlex 7060", type: "لپ‌تاپ", ip: "10.20.9.104", mac: "D4:81:D7:19:88:20", owner: "انبار IT (بلااستفاده)", age: "۴.۵ سال (آماده تخصیص)", aiNote: "پیشنهاد انتقال به واحد پذیرش", statusColor: "amber" }
+        ];
+
+        const kbDocumentsData = [
+            {
+                title: "دستورالعمل جامع پیکربندی فایروال و جداسازی VLANها",
+                category: "مدیریت دانش فنی • شبکه (۵.۳)",
+                format: "PDF • نسخه ۳.۴",
+                usage: "۳۴۲ بازدید",
+                summary: "شامل استانداردهای آدرس‌دهی IP، قوانین دسترسی بین سرورهای دیتابیس و وب، و پروتکل‌های امنیتی VPN سازمان."
+            },
+            {
+                title: "راهنمای بازیابی اضطراری دیتابیس و سرورهای مجازی (DRP)",
+                category: "بانک دانش سازمانی • فرآیندها (۵.۱)",
+                format: "Word • نسخه ۲.۱",
+                usage: "۲۱۸ بازدید",
+                summary: "مراحل گام‌به‌گام بازیابی بکاپ‌های Veeam، تست سلامت داده‌ها و بازگردانی سرویس‌های حیاتی در کمتر از ۳۰ دقیقه."
+            },
+            {
+                title: "پروتکل تحویل، ثبت دارایی و اسقاط تجهیزات IT",
+                category: "دستورالعمل‌های IT (۵.۱ و ۳.۲)",
+                format: "PDF • نسخه ۴.۰",
+                usage: "۴۱۰ بازدید",
+                summary: "فرآیند ثبت شماره سریال، تخصیص مالکیت در سامانه اموال و معیارهای فنی تشخیص تجهیزات فرسوده جهت جایگزینی."
+            },
+            {
+                title: "بانک راهکارهای رفع خطاهای پرتکرار نرم‌افزار ERP و شبکه",
+                category: "تجربیات کارشناسان (۵.۳ و ۵.۴)",
+                format: "پایگاه دانش هوشمند",
+                usage: "۶۹۵ بازیابی AI",
+                summary: "مجموعه ۴۵ راهکار تست‌شده توسط کارشناسان که مستقیماً توسط دستیار هوشمند برای پاسخگویی خودکار استفاده می‌شود."
+            },
+            {
+                title: "مستندات معماری مرکز داده و توپولوژی ارتباطات",
+                category: "مستندسازی پروژه‌های IT (۵.۳)",
+                format: "Visio / PDF • نسخه ۲.۸",
+                usage: "۱۸۹ بازدید",
+                summary: "نقشه کامل رک‌ها، ارتباطات فیبر نوری، سوئیچ‌های Core و Access و جدول تخصیص پورت‌ها."
+            },
+            {
+                title: "استاندارد امنیت اطلاعات و مدیریت سطح دسترسی کاربران",
+                category: "مدیریت و توسعه دانش (۵.۵)",
+                format: "PDF • نسخه ۳.۰",
+                usage: "۲۷۴ بازدید",
+                summary: "سیاست‌های رمز عبور، احراز هویت چندمرحله‌ای، سطوح دسترسی اسناد محرمانه و ممیزی دوره‌ای."
+            }
+        ];
+
+        const masterPlanSections = [
+            {
+                id: "sec-1",
+                number: "۱",
+                title: "دستیار هوشمند واحد IT (AI IT Assistant)",
+                status: "فعال (۸۵٪)",
+                badgeColor: "cyan",
+                submodules: [
+                    { code: "۱.۱", name: "مدیریت درخواست‌ها", items: ["ثبت هوشمند درخواست‌های کاربران", "دسته‌بندی خودکار تیکت‌ها", "اولویت‌بندی درخواست‌ها", "ارجاع هوشمند به کارشناسان", "پیگیری وضعیت درخواست‌ها"] },
+                    { code: "۱.۲", name: "پشتیبانی و عیب‌یابی هوشمند", items: ["تشخیص اولیه مشکلات کاربران", "ارائه راهکارهای فنی", "عیب‌یابی مشکلات نرم‌افزاری", "عیب‌یابی مشکلات سخت‌افزاری", "راهنمایی کاربران در رفع مشکلات"] },
+                    { code: "۱.۳", name: "هوش مصنوعی و اتوماسیون", items: ["پاسخگویی خودکار به کاربران", "تحلیل درخواست‌های پرتکرار", "پیشنهاد راهکارهای پیشگیرانه", "خودکارسازی فعالیت‌های تکراری IT", "تحلیل عملکرد کارشناسان IT"] },
+                    { code: "۱.۴", name: "گزارش‌گیری مدیریتی", items: ["گزارش تعداد درخواست‌ها", "تحلیل زمان پاسخگویی", "بررسی میزان رضایت کاربران", "شناسایی گلوگاه‌های پشتیبانی"] }
+                ]
+            },
+            {
+                id: "sec-2",
+                number: "۲",
+                title: "سیستم هوشمند پایش شبکه و سرورها (AI Network & Server Monitoring)",
+                status: "فعال (۹۲٪)",
+                badgeColor: "indigo",
+                submodules: [
+                    { code: "۲.۱", name: "پایش هوشمند شبکه", items: ["مانیتورینگ تجهیزات شبکه", "بررسی وضعیت سوئیچ‌ها و روترها", "پایش پهنای باند", "بررسی ترافیک شبکه", "شناسایی قطعی ارتباطات"] },
+                    { code: "۲.۲", name: "پایش هوشمند سرورها", items: ["مانیتورینگ CPU", "مانیتورینگ RAM", "مانیتورینگ Storage", "بررسی سلامت سرویس‌ها", "پایش منابع پردازشی"] },
+                    { code: "۲.۳", name: "تشخیص و پیش‌بینی اختلالات", items: ["شناسایی رفتارهای غیرعادی", "تشخیص گلوگاه‌های شبکه", "پیش‌بینی خرابی سرورها", "تحلیل روند مصرف منابع", "ارسال هشدار هوشمند"] },
+                    { code: "۲.۴", name: "امنیت و دسترس‌پذیری", items: ["شناسایی فعالیت‌های مشکوک", "پایش وضعیت فایروال", "بررسی دسترس‌پذیری سرویس‌ها", "ثبت رخدادهای شبکه", "تحلیل لاگ‌های زیرساخت"] }
+                ]
+            },
+            {
+                id: "sec-3",
+                number: "۳",
+                title: "سیستم هوشمند مدیریت دارایی‌های IT (IT Asset Intelligence)",
+                status: "فعال (۸۰٪)",
+                badgeColor: "emerald",
+                submodules: [
+                    { code: "۳.۱", name: "شناسایی و ثبت دارایی‌ها", items: ["شناسایی خودکار تجهیزات", "ثبت مشخصات سخت‌افزاری", "ثبت مشخصات نرم‌افزاری", "شناسایی آدرس IP و MAC", "ثبت شماره سریال تجهیزات"] },
+                    { code: "۳.۲", name: "مدیریت چرخه عمر دارایی", items: ["ثبت تاریخ خرید", "ثبت تاریخ تحویل", "مدیریت محل استقرار", "مدیریت مالکیت تجهیزات", "ثبت سوابق تعمیر و نگهداری"] },
+                    { code: "۳.۳", name: "تحلیل و ارزیابی دارایی‌ها", items: ["تحلیل وضعیت تجهیزات", "بررسی میزان استفاده", "ارزیابی هزینه نگهداری", "شناسایی تجهیزات بلااستفاده", "تحلیل ارزش دارایی‌ها"] },
+                    { code: "۳.۴", name: "گزارش‌گیری و کنترل", items: ["گزارش موجودی تجهیزات", "گزارش دارایی‌های سازمان", "گزارش وضعیت تجهیزات", "گزارش هزینه‌های IT", "داشبورد مدیریتی دارایی‌ها"] }
+                ]
+            },
+            {
+                id: "sec-4",
+                number: "۴",
+                title: "مدیریت هوشمند تجهیزات IT (Smart IT Equipment Management)",
+                status: "در حال توسعه (۷۲٪)",
+                badgeColor: "teal",
+                submodules: [
+                    { code: "۴.۱", name: "شناسایی و طبقه‌بندی تجهیزات", items: ["شناسایی کامپیوترها و لپ‌تاپ‌ها", "شناسایی سرورها", "شناسایی تجهیزات شبکه", "شناسایی تجهیزات ذخیره‌سازی", "طبقه‌بندی تجهیزات بر اساس نوع و کاربرد"] },
+                    { code: "۴.۲", name: "تحلیل عمر مفید تجهیزات", items: ["محاسبه عمر عملیاتی تجهیزات", "بررسی تاریخ تولید و خرید", "تحلیل استهلاک سخت‌افزاری", "بررسی سوابق خرابی", "تخمین زمان پایان عمر مفید"] },
+                    { code: "۴.۳", name: "پیشنهاد ارتقا و جایگزینی", items: ["شناسایی تجهیزات فرسوده", "پیشنهاد ارتقای سخت‌افزار", "پیشنهاد جایگزینی تجهیزات", "اولویت‌بندی تجهیزات برای تعویض", "تحلیل هزینه تعمیر در برابر تعویض"] },
+                    { code: "۴.۴", name: "پیش‌بینی بودجه خرید", items: ["پیش‌بینی نیاز سالانه تجهیزات", "برآورد هزینه خرید", "برنامه‌ریزی بودجه IT", "تحلیل روند افزایش هزینه‌ها", "تهیه برنامه خرید کوتاه‌مدت و بلندمدت"] },
+                    { code: "۴.۵", name: "تصمیم‌سازی هوشمند", items: ["پیشنهاد زمان مناسب خرید", "مقایسه هزینه برندها و مدل‌ها", "تحلیل هزینه مالکیت (TCO)", "پیش‌بینی هزینه نگهداری", "ارائه گزارش به مدیریت"] }
+                ]
+            },
+            {
+                id: "sec-5",
+                number: "۵",
+                title: "سیستم هوشمند مدیریت دانش سازمانی (AI Knowledge Management System)",
+                status: "در حال توسعه (۶۸٪)",
+                badgeColor: "purple",
+                submodules: [
+                    { code: "۵.۱", name: "ایجاد بانک دانش سازمانی", items: ["ذخیره مستندات فنی", "ثبت دستورالعمل‌های IT", "مستندسازی فرآیندها", "ثبت راهکار مشکلات", "ایجاد پایگاه دانش مرکزی"] },
+                    { code: "۵.۲", name: "جستجوی هوشمند اطلاعات", items: ["جستجوی معنایی اسناد", "جستجوی سریع راهکارها", "بازیابی اطلاعات فنی", "جستجو در فایل‌های PDF و Word", "پاسخگویی مبتنی بر مستندات"] },
+                    { code: "۵.۳", name: "مدیریت دانش فنی", items: ["مستندسازی تنظیمات شبکه", "ثبت اطلاعات سرورها", "ثبت تنظیمات تجهیزات", "مستندسازی پروژه‌های IT", "ثبت تجربیات کارشناسان"] },
+                    { code: "۵.۴", name: "دستیار هوشمند دانش", items: ["پاسخگویی به سوالات تخصصی", "پیشنهاد راهکار بر اساس سوابق", "خلاصه‌سازی مستندات", "استخراج اطلاعات از فایل‌ها", "پیشنهاد مستندات مرتبط"] },
+                    { code: "۵.۵", name: "مدیریت و توسعه دانش", items: ["به‌روزرسانی مستندات", "کنترل نسخه اسناد", "مدیریت سطح دسترسی", "شناسایی مستندات تکراری", "تحلیل میزان استفاده از دانش"] }
+                ]
+            },
+            {
+                id: "sec-6",
+                number: "۶",
+                title: "یکپارچه‌سازی سامانه‌های هوشمند IT (Integrated AI IT Management)",
+                status: "هسته مرکزی (۸۲٪)",
+                badgeColor: "blue",
+                submodules: [
+                    { code: "۶.۱", name: "داشبورد مدیریتی مرکزی", items: ["نمایش وضعیت کلی زیرساخت IT", "نمایش وضعیت شبکه و سرورها", "نمایش وضعیت دارایی‌ها", "نمایش درخواست‌های کاربران", "نمایش هشدارهای مهم"] },
+                    { code: "۶.۲", name: "موتور هوش مصنوعی مرکزی", items: ["تحلیل داده‌های عملیاتی", "شناسایی الگوهای غیرعادی", "پیش‌بینی خرابی‌ها", "پیشنهاد اقدامات اصلاحی", "تولید گزارش‌های مدیریتی"] },
+                    { code: "۶.۳", name: "اتوماسیون فرآیندهای IT", items: ["خودکارسازی تیکت‌ها", "خودکارسازی هشدارها", "خودکارسازی گزارش‌ها", "مدیریت گردش کار", "اجرای اقدامات تأییدشده"] },
+                    { code: "۶.۴", name: "تحلیل و تصمیم‌سازی", items: ["تحلیل عملکرد واحد IT", "تحلیل هزینه‌های فناوری اطلاعات", "پیش‌بینی نیازهای آینده", "بهینه‌سازی منابع سازمان", "پشتیبانی از تصمیمات مدیریتی"] }
+                ]
+            },
+            {
+                id: "sec-7",
+                number: "۷",
+                title: "اهداف کلان پروژه (Strategic Macro Objectives)",
+                status: "در حال تحقق (۷۹٪)",
+                badgeColor: "amber",
+                submodules: [
+                    { code: "۷.۰", name: "ده هدف راهبردی تحول دیجیتال واحد IT", items: [
+                        "هوشمندسازی فرآیندهای واحد IT",
+                        "کاهش هزینه‌های عملیاتی",
+                        "افزایش بهره‌وری کارشناسان",
+                        "افزایش پایداری زیرساخت",
+                        "کاهش زمان رفع مشکلات",
+                        "مدیریت بهینه دارایی‌ها",
+                        "پیش‌بینی نیازهای سخت‌افزاری",
+                        "ایجاد دانش سازمانی متمرکز",
+                        "حرکت به سمت مدیریت داده‌محور",
+                        "تبدیل واحد IT به یک واحد پیش‌بین و تصمیم‌ساز"
+                    ]}
+                ]
+            },
+            {
+                id: "sec-8",
+                number: "۸",
+                title: "خروجی نهایی پروژه: مرکز هوشمند مدیریت فناوری اطلاعات (AI IT Command Center)",
+                status: "چشم‌انداز کلان",
+                badgeColor: "rose",
+                submodules: [
+                    { code: "۸.۰", name: "معماری نهایی و چشم‌انداز عملیاتی", items: [
+                        "۱. AI IT Assistant (دستیار هوشمند واحد IT)",
+                        "۲. AI Network & Server Monitoring (پایش هوشمند شبکه و سرورها)",
+                        "۳. IT Asset Intelligence (سیستم هوشمند مدیریت دارایی‌های IT)",
+                        "۴. Smart IT Equipment Management (مدیریت هوشمند تجهیزات IT)",
+                        "۵. AI Knowledge Management (سیستم هوشمند مدیریت دانش سازمانی)",
+                        "۶. Central AI Management Dashboard (داشبورد مدیریتی مرکزی)",
+                        "چشم‌انداز: تبدیل واحد IT به یک مرکز هوشمند، خودکار، تحلیل‌محور و پیش‌بینی‌کننده"
+                    ]}
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // STATE & INITIALIZATION
+        // =========================================================================
+        let isLive = true;
+        let liveInterval = null;
+        let charts = {};
+        let currentModalActionText = "";
+
+        const tabTitles = {
+            overview: { title: "داشبورد مدیریتی مرکزی (AI IT Command Center)", subtitle: "پایش یکپارچه زیرساخت، دارایی‌ها، تیکت‌های هوشمند و شاخص‌های تصمیم‌سازی کلان (بخش ۶، ۷ و ۸)" },
+            assistant: { title: "دستیار هوشمند واحد IT (AI IT Assistant)", subtitle: "مدیریت هوشمند درخواست‌ها، عیب‌یابی خودکار، تحلیل عملکرد کارشناسان و گلوگاه‌ها (بخش ۱)" },
+            monitoring: { title: "سیستم هوشمند پایش شبکه و سرورها (AI Monitoring)", subtitle: "مانیتورینگ لحظه‌ای منابع، تشخیص ناهنجاری، پیش‌بینی خرابی و امنیت زیرساخت (بخش ۲)" },
+            assets: { title: "مدیریت هوشمند دارایی‌ها و تجهیزات IT", subtitle: "شناسایی خودکار، تحلیل چرخه عمر، پیشنهاد ارتقا/جایگزینی و پیش‌بینی بودجه TCO (بخش ۳ و ۴)" },
+            knowledge: { title: "سیستم هوشمند مدیریت دانش سازمانی (AI KMS)", subtitle: "بانک دانش متمرکز، جستجوی معنایی مستندات فنی و دستیار استخراج دانش (بخش ۵)" },
+            masterplan: { title: "نقشه راه و معماری طرح جامع هوشمندسازی IT", subtitle: "بررسی کامل ۸ محور اصلی، زیرماژول‌ها و وضعیت پیاده‌سازی مرکز فرماندهی هوشمند" }
+        };
+
+        // =========================================================================
+        // NAVIGATION & THEME CONTROLS
+        // =========================================================================
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Show target tab
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            // Update sidebar button styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all bg-gradient-to-l from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/20";
+                } else {
+                    btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all";
+                }
+            });
+
+            // Update header title
+            if (tabTitles[tabId]) {
+                document.getElementById('pageTitle').textContent = tabTitles[tabId].title;
+                document.getElementById('pageSubtitle').textContent = tabTitles[tabId].subtitle;
+            }
+
+            // Close mobile sidebar if open
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('translate-x-full') && window.innerWidth < 1024) {
+                toggleSidebar();
+            }
+
+            // Resize charts to prevent canvas distortion on hidden tabs
+            setTimeout(() => {
+                Object.values(charts).forEach(chart => {
+                    if (chart && typeof chart.resize === 'function') chart.resize();
+                });
+            }, 50);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.toggle('translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-slate-700';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            }
+            updateChartsTheme();
+        }
+
+        // =========================================================================
+        // RENDER DYNAMIC SECTIONS
+        // =========================================================================
+        function renderMacroGoals() {
+            const grid = document.getElementById('macroGoalsGrid');
+            grid.innerHTML = macroGoalsData.map(g => `
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                    <div class="flex items-start justify-between gap-2 mb-2.5">
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">${g.title}</span>
+                        <i class="fa-solid ${g.icon} text-cyan-500 text-xs mt-0.5"></i>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] mb-1">
+                            <span class="text-slate-400">تحقق هدف</span>
+                            <span class="font-bold text-cyan-600 dark:text-cyan-400">${toPersianDigits(g.progress)}٪</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-l from-cyan-500 to-blue-600 rounded-full" style="width: ${g.progress}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTicketsTable() {
+            const filter = document.getElementById('ticketFilter').value;
+            const tbody = document.getElementById('ticketsTableBody');
+            
+            const filtered = ticketsData.filter(t => {
+                if (filter === 'all') return true;
+                if (filter === 'auto') return t.status === 'auto';
+                if (filter === 'assigned') return t.status === 'assigned';
+                if (filter === 'critical') return t.priority === 'بحرانی' || t.priority === 'بالا';
+                return true;
+            });
+
+            tbody.innerHTML = filtered.map(t => {
+                const prioBadge = t.priority === 'بحرانی'
+                    ? 'bg-rose-500/15 text-rose-500'
+                    : t.priority === 'بالا'
+                        ? 'bg-amber-500/15 text-amber-500'
+                        : 'bg-slate-500/15 text-slate-400';
+
+                const statusBadge = t.status === 'auto'
+                    ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 font-semibold"><i class="fa-solid fa-robot text-[10px]"></i> حل خودکار AI</span>'
+                    : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 font-semibold"><i class="fa-solid fa-user-check text-[10px]"></i> ${t.assignee}</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-850/60 transition">
+                        <td class="py-3 px-3 font-mono font-bold text-cyan-600 dark:text-cyan-400">${t.id}</td>
+                        <td class="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">${t.desc}</td>
+                        <td class="py-3 px-3 text-slate-500 dark:text-slate-400">${t.category}</td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-md font-bold text-[11px] ${prioBadge}">${t.priority}</span></td>
+                        <td class="py-3 px-3">${statusBadge}</td>
+                        <td class="py-3 px-3 text-slate-500 dark:text-slate-300 max-w-xs">${t.solution}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function fillSampleTicket(text) {
+            document.getElementById('newTicketInput').value = text;
+        }
+
+        function simulateNewTicket() {
+            const input = document.getElementById('newTicketInput');
+            const text = input.value.trim();
+            if (!text) {
+                showToast('لطفاً ابتدا شرح مشکل کاربر را وارد کنید.', 'warning');
+                return;
+            }
+
+            let category = "پشتیبانی عمومی";
+            let priority = "متوسط";
+            let status = "auto";
+            let assignee = "دستیار هوشمند AI";
+            let solution = "ارسال راهنمای گام‌به‌گام و اجرای اسکریپت اصلاح خودکار";
+
+            if (text.includes("VPN") || text.includes("شبکه") || text.includes("اینترنت")) {
+                category = "شبکه و امنیت";
+                priority = "بالا";
+                solution = "بازنشانی پروفایل VPN و تمدید خودکار توکن امنیتی";
+            } else if (text.includes("هارد") || text.includes("سخت‌افزار") || text.includes("بلو اسکرین") || text.includes("صدای")) {
+                category = "سخت‌افزار و تجهیزات";
+                priority = "بحرانی";
+                status = "assigned";
+                assignee = "مهندس کریمی (تیم سخت‌افزار)";
+                solution = "تشخیص خرابی احتمالی درایو • ثبت درخواست جایگزینی قطعه";
+            } else if (text.includes("دسترسی") || text.includes("ERP") || text.includes("نرم‌افزار")) {
+                category = "نرم‌افزار و دسترسی";
+                priority = "متوسط";
+                solution = "بررسی ماتریس دسترسی و فعال‌سازی خودکار گروه کاربری";
+            }
+
+            const newId = "TK-" + Math.floor(4093 + Math.random() * 90);
+            ticketsData.unshift({
+                id: newId,
+                desc: text,
+                category,
+                priority,
+                status,
+                assignee,
+                solution
+            });
+
+            input.value = "";
+            renderTicketsTable();
+            showToast(`تیکت ${newId} توسط AI دسته‌بندی شد (${category} - اولویت ${priority})`, 'success');
+        }
+
+        function renderServersGrid() {
+            const grid = document.getElementById('serversGrid');
+            grid.innerHTML = serversData.map(s => {
+                const isWarn = s.status.includes("هشدار") || s.ram > 80 || s.storage > 85;
+                const badgeClass = isWarn
+                    ? "bg-amber-500/15 text-amber-500 border-amber-500/30"
+                    : "bg-emerald-500/15 text-emerald-500 border-emerald-500/30";
+
+                return `
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 space-y-3">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-mono font-bold text-xs text-slate-900 dark:text-white">${s.name}</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">${s.role}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold border ${badgeClass}">${s.status}</span>
+                        </div>
+
+                        <div class="space-y-2 text-[11px]">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-slate-400">CPU</span>
+                                    <span class="font-bold">${toPersianDigits(s.cpu)}٪</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-cyan-500 rounded-full transition-all duration-500" style="width: ${s.cpu}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-slate-400">RAM</span>
+                                    <span class="font-bold">${toPersianDigits(s.ram)}٪</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full ${s.ram > 80 ? 'bg-amber-500' : 'bg-indigo-500'} rounded-full transition-all duration-500" style="width: ${s.ram}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-slate-400">Storage</span>
+                                    <span class="font-bold">${toPersianDigits(s.storage)}٪</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full ${s.storage > 85 ? 'bg-rose-500' : 'bg-emerald-500'} rounded-full transition-all duration-500" style="width: ${s.storage}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                            <span class="text-cyan-600 dark:text-cyan-400 font-medium"><i class="fa-solid fa-brain ml-1"></i>${s.prediction}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSecurityLogs() {
+            const list = document.getElementById('securityLogsList');
+            list.innerHTML = securityLogsData.map(l => {
+                const iconMap = {
+                    danger: "fa-shield-virus text-rose-500 bg-rose-500/10",
+                    warning: "fa-triangle-exclamation text-amber-500 bg-amber-500/10",
+                    success: "fa-circle-check text-emerald-500 bg-emerald-500/10",
+                    info: "fa-microchip text-cyan-500 bg-cyan-500/10"
+                };
+                return `
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconMap[l.type]}">
+                            <i class="fa-solid ${iconMap[l.type].split(' ')[0]}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-800 dark:text-slate-200">${l.title}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${l.time}</span>
+                            </div>
+                            <p class="text-cyan-600 dark:text-cyan-400 mt-1 font-medium">${l.action}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function runAiDiagnostics() {
+            showToast('اسکن عمیق هوش مصنوعی روی ۳۳ سرور و ۴۸ تجهیز شبکه آغاز شد...', 'info');
+            setTimeout(() => {
+                showToast('اسکن تکمیل شد: ۳۲ سرور پایدار • ۱ هشدار پیش‌بینانه در SAN-STORAGE-02 ثبت شد.', 'success');
+            }, 1200);
+        }
+
+        function renderAssetsTable() {
+            const query = document.getElementById('assetSearchInput').value.trim().toLowerCase();
+            const typeFilter = document.getElementById('assetTypeFilter').value;
+            const tbody = document.getElementById('assetsTableBody');
+
+            const filtered = assetsData.filter(a => {
+                const matchesType = typeFilter === 'all' || a.type === typeFilter;
+                const matchesQuery = !query ||
+                    a.name.toLowerCase().includes(query) ||
+                    a.code.toLowerCase().includes(query) ||
+                    a.serial.toLowerCase().includes(query) ||
+                    a.ip.includes(query) ||
+                    a.owner.toLowerCase().includes(query);
+                return matchesType && matchesQuery;
+            });
+
+            tbody.innerHTML = filtered.map(a => {
+                const badgeColors = {
+                    emerald: "bg-emerald-500/15 text-emerald-500",
+                    cyan: "bg-cyan-500/15 text-cyan-500",
+                    rose: "bg-rose-500/15 text-rose-500",
+                    amber: "bg-amber-500/15 text-amber-500"
+                };
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-850/60 transition">
+                        <td class="py-3 px-3">
+                            <div class="font-mono font-bold text-cyan-600 dark:text-cyan-400">${a.code}</div>
+                            <div class="text-[10px] font-mono text-slate-400">${a.serial}</div>
+                        </td>
+                        <td class="py-3 px-3">
+                            <div class="font-bold text-slate-800 dark:text-slate-200">${a.name}</div>
+                            <span class="text-[11px] text-slate-400">${a.type}</span>
+                        </td>
+                        <td class="py-3 px-3 font-mono">
+                            <div class="text-slate-700 dark:text-slate-300">${a.ip}</div>
+                            <div class="text-[10px] text-slate-400">${a.mac}</div>
+                        </td>
+                        <td class="py-3 px-3 text-slate-600 dark:text-slate-300">${a.owner}</td>
+                        <td class="py-3 px-3 font-medium">${a.age}</td>
+                        <td class="py-3 px-3">
+                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${badgeColors[a.statusColor]}">${a.aiNote}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderKnowledgeBase(filterText = "") {
+            const grid = document.getElementById('kbDocumentsGrid');
+            const q = filterText.trim().toLowerCase();
+            const filtered = kbDocumentsData.filter(d =>
+                !q || d.title.toLowerCase().includes(q) || d.summary.toLowerCase().includes(q) || d.category.toLowerCase().includes(q)
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-8 text-xs text-slate-400">سندی مطابق با عبارت جستجو یافت نشد. دستیار هوشمند در حال تولید پیش‌نویس پاسخ است...</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(d => `
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-purple-500/40 transition">
+                    <div>
+                        <div class="flex items-center justify-between text-[11px] mb-2">
+                            <span class="px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold">${d.category}</span>
+                            <span class="text-slate-400">${d.format}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white leading-snug mb-2">${d.title}</h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${d.summary}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                        <span class="text-slate-400"><i class="fa-solid fa-eye ml-1"></i>${d.usage}</span>
+                        <button onclick="showToast('خلاصه هوشمند سند «${d.title}» استخراج شد.', 'info')" class="text-cyan-600 dark:text-cyan-400 font-bold hover:underline">
+                            خلاصه‌سازی AI <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchKnowledgeBase() {
+            const q = document.getElementById('kbSearchInput').value;
+            renderKnowledgeBase(q);
+            if (q.trim()) {
+                showToast(`جستجوی معنایی برای «${q}» انجام شد.`, 'success');
+            }
+        }
+
+        function quickKbSearch(term) {
+            document.getElementById('kbSearchInput').value = term;
+            searchKnowledgeBase();
+        }
+
+        function renderMasterPlan() {
+            const container = document.getElementById('masterPlanContainer');
+            const query = document.getElementById('planSearchInput').value.trim().toLowerCase();
+
+            container.innerHTML = masterPlanSections.map(sec => {
+                // Filter submodules/items if query exists
+                const matchingSubmodules = sec.submodules.map(sub => {
+                    const filteredItems = sub.items.filter(item =>
+                        !query || item.toLowerCase().includes(query) || sub.name.toLowerCase().includes(query) || sec.title.toLowerCase().includes(query)
+                    );
+                    return { ...sub, items: filteredItems };
+                }).filter(sub => sub.items.length > 0);
+
+                if (matchingSubmodules.length === 0) return '';
+
+                return `
+                    <details open class="plan-accordion group rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/60 overflow-hidden">
+                        <summary class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 cursor-pointer select-none list-none hover:bg-slate-100 dark:hover:bg-slate-800/70 transition">
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white font-extrabold text-sm flex items-center justify-center shadow">
+                                    ${sec.number}
+                                </span>
+                                <h4 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">${sec.title}</h4>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400">${sec.status}</span>
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </div>
+                        </summary>
+                        <div class="p-5 pt-2 border-t border-slate-200/70 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            ${matchingSubmodules.map(sub => `
+                                <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                                    <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                        <span class="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold text-xs">${sub.code}</span>
+                                        <h5 class="font-bold text-xs text-slate-800 dark:text-slate-100">${sub.name}</h5>
+                                    </div>
+                                    <ul class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                                        ${sub.items.map(it => `
+                                            <li class="flex items-start gap-2">
+                                                <i class="fa-solid fa-check-circle text-emerald-500 text-[11px] mt-1 shrink-0"></i>
+                                                <span>${it}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                `;
+            }).join('');
+        }
+
+        function expandAllPlan(openState) {
+            document.querySelectorAll('.plan-accordion').forEach(el => {
+                el.open = openState;
+            });
+        }
+
+        // =========================================================================
+        // MODAL & TOAST INTERACTIONS
+        // =========================================================================
+        function openAlertModal(index) {
+            const alertObj = predictiveAlertsData[index];
+            if (!alertObj) return;
+
+            document.getElementById('modalTitle').textContent = alertObj.title;
+            document.getElementById('modalSubtitle').textContent = alertObj.subtitle;
+            currentModalActionText = alertObj.actionLabel;
+            document.getElementById('modalActionBtn').textContent = alertObj.actionLabel;
+
+            document.getElementById('modalBody').innerHTML = `
+                <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs">
+                    سطح هشدار: ${alertObj.severity}
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white mb-1">تحلیل موتور هوش مصنوعی مرکزی:</h4>
+                    <p class="text-slate-600 dark:text-slate-300">${alertObj.analysis}</p>
+                </div>
+                <div class="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                    <h4 class="font-bold text-cyan-700 dark:text-cyan-300 mb-1">اقدام اصلاحی پیشنهادی (بخش ۶.۲ و ۶.۳):</h4>
+                    <p class="text-slate-700 dark:text-slate-200">${alertObj.recommendation}</p>
+                </div>
+            `;
+
+            const modal = document.getElementById('detailModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detailModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function executeModalAction() {
+            closeModal();
+            showToast(`دستور اتوماسیون «${currentModalActionText}» با موفقیت در صف اجرا قرار گرفت.`, 'success');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-600 text-white',
+                warning: 'bg-amber-600 text-white',
+                info: 'bg-slate-800 text-white border border-cyan-500/40'
+            };
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2.5 transform transition-all duration-300 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i class="fa-solid fa-robot"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // =========================================================================
+        // CHARTS INITIALIZATION (Chart.js)
+        // =========================================================================
+        function initCharts() {
+            Chart.defaults.font.family = "'Vazirmatn', sans-serif";
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(15, 23, 42, 0.08)';
+            const textColor = isDark ? '#94a3b8' : '#475569';
+
+            // 1. Central Telemetry Line Chart
+            const ctx1 = document.getElementById('centralTelemetryChart').getContext('2d');
+            charts.telemetry = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['۰۸:۰۰', '۰۹:۰۰', '۱۰:۰۰', '۱۱:۰۰', '۱۲:۰۰', '۱۳:۰۰', '۱۴:۰۰', '۱۵:۰۰'],
+                    datasets: [
+                        {
+                            label: 'بار سرورها (%)',
+                            data: [42, 51, 68, 72, 65, 58, 61, 54],
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.12)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2.5
+                        },
+                        {
+                            label: 'ترافیک شبکه (%)',
+                            data: [35, 48, 82, 86, 74, 62, 66, 59],
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2.5
+                        },
+                        {
+                            label: 'حل خودکار AI (%)',
+                            data: [70, 72, 74, 73, 76, 75, 78, 75],
+                            borderColor: '#10b981',
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+
+            // 2. Recurring Tickets Bar Chart
+            const ctx2 = document.getElementById('recurringTicketsChart').getContext('2d');
+            charts.recurring = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['اتصال VPN و گواهی', 'بازنشانی رمز عبور', 'کندی نرم‌افزار ERP', 'نصب پرینتر و درایور', 'درخواست دسترسی پوشه'],
+                    datasets: [{
+                        label: 'تعداد درخواست در ماه',
+                        data: [310, 285, 190, 145, 132],
+                        backgroundColor: ['#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#10b981'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                        y: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+
+            // 3. Specialist Performance Chart
+            const ctx3 = document.getElementById('specialistPerfChart').getContext('2d');
+            charts.specialist = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: ['دستیار هوشمند AI', 'مهندس رضایی', 'مهندس کریمی', 'مهندس صادقی', 'مهندس احمدی'],
+                    datasets: [{
+                        label: 'تیکت‌های حل‌شده (ماه)',
+                        data: [1062, 118, 96, 82, 62],
+                        backgroundColor: ['#10b981', '#06b6d4', '#06b6d4', '#06b6d4', '#06b6d4'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+
+            // 4. Network Forecast Chart
+            const ctx4 = document.getElementById('networkForecastChart').getContext('2d');
+            charts.netForecast = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه (پیش‌بینی)', 'جمعه (پیش‌بینی)'],
+                    datasets: [
+                        {
+                            label: 'مصرف واقعی پهنای باند (Gbps)',
+                            data: [6.1, 6.8, 7.4, 6.9, 6.4, null, null],
+                            borderColor: '#06b6d4',
+                            tension: 0.35,
+                            borderWidth: 2.5
+                        },
+                        {
+                            label: 'پیش‌بینی هوش مصنوعی (Gbps)',
+                            data: [null, null, null, null, 6.4, 5.2, 3.1],
+                            borderColor: '#f59e0b',
+                            borderDash: [6, 4],
+                            tension: 0.35,
+                            borderWidth: 2.5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        y: { grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+
+            // 5. Budget & TCO Forecast Chart
+            const ctx5 = document.getElementById('budgetForecastChart').getContext('2d');
+            charts.budget = new Chart(ctx5, {
+                type: 'bar',
+                data: {
+                    labels: ['بهار ۱۴۰۵', 'تابستان ۱۴۰۵', 'پاییز ۱۴۰۵', 'زمستان ۱۴۰۵', 'چشم‌انداز ۱۴۰۶'],
+                    datasets: [
+                        {
+                            label: 'بودجه خرید و جایگزینی هوشمند (میلیارد تومان)',
+                            data: [2.4, 1.8, 3.1, 1.5, 4.2],
+                            backgroundColor: '#06b6d4',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'صرفه‌جویی ناشی از کاهش هزینه تعمیر و TCO',
+                            data: [0.7, 0.9, 1.2, 1.4, 2.1],
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        y: { grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+        }
+
+        function updateChartsTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(15, 23, 42, 0.08)';
+            const textColor = isDark ? '#94a3b8' : '#475569';
+
+            Object.values(charts).forEach(chart => {
+                if (!chart) return;
+                if (chart.options.scales.x) {
+                    chart.options.scales.x.ticks.color = textColor;
+                    if (chart.options.scales.x.grid.display !== false) chart.options.scales.x.grid.color = gridColor;
+                }
+                if (chart.options.scales.y) {
+                    chart.options.scales.y.ticks.color = textColor;
+                    if (chart.options.scales.y.grid.display !== false) chart.options.scales.y.grid.color = gridColor;
+                }
+                if (chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                    chart.options.plugins.legend.labels.color = textColor;
+                }
+                chart.update();
+            });
+        }
+
+        // =========================================================================
+        // LIVE TELEMETRY SIMULATION
+        // =========================================================================
+        function startLiveSimulation() {
+            if (liveInterval) clearInterval(liveInterval);
+            liveInterval = setInterval(() => {
+                if (!isLive) return;
+
+                // Subtle jitter on server metrics
+                serversData.forEach(s => {
+                    const delta = Math.floor(Math.random() * 5) - 2;
+                    s.cpu = Math.min(95, Math.max(18, s.cpu + delta));
+                });
+                renderServersGrid();
+
+                // Update central telemetry chart
+                if (charts.telemetry) {
+                    const ds0 = charts.telemetry.data.datasets[0].data;
+                    const ds1 = charts.telemetry.data.datasets[1].data;
+                    ds0.shift();
+                    ds0.push(Math.floor(48 + Math.random() * 24));
+                    ds1.shift();
+                    ds1.push(Math.floor(55 + Math.random() * 28));
+                    charts.telemetry.update('none');
+                }
+            }, 3500);
+        }
+
+        function toggleLiveSimulation() {
+            isLive = !isLive;
+            const btn = document.getElementById('liveToggleBtn');
+            const dot = document.getElementById('liveIndicatorDot');
+            const txt = document.getElementById('liveToggleText');
+
+            if (isLive) {
+                btn.className = "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400";
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-ping";
+                txt.textContent = "به‌روزرسانی زنده: فعال";
+                showToast('پایش تله‌متری زنده فعال شد.', 'info');
+            } else {
+                btn.className = "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition bg-slate-200/60 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-500";
+                dot.className = "w-2 h-2 rounded-full bg-slate-400";
+                txt.textContent = "به‌روزرسانی زنده: متوقف";
+            }
+        }
+
+        function handleTimeframeChange(val) {
+            const labelsMap = {
+                realtime: "لحظه‌ای (امروز)",
+                weekly: "گزارش هفتگی",
+                monthly: "گزارش ماهانه",
+                yearly: "چشم‌انداز سالانه"
+            };
+            showToast(`داده‌های مدیریتی بر اساس بازه «${labelsMap[val]}» به‌روزرسانی شد.`, 'info');
+        }
+
+        function toPersianDigits(num) {
+            const persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            return num.toString().replace(/\d/g, x => persian[x]);
+        }
+
+        // Boot Application
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMacroGoals();
+            renderTicketsTable();
+            renderServersGrid();
+            renderSecurityLogs();
+            renderAssetsTable();
+            renderKnowledgeBase();
+            renderMasterPlan();
+            initCharts();
+            startLiveSimulation();
+        });
+    </script>
+</body>
+</html>
